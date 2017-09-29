@@ -183,12 +183,16 @@
   }
 
 
+  /**
+   * @param {!Set<!HTMLStyleElement>|!NodeList}
+   */
   function resolve(changes, opt_dirty) {
     console.info('got potential changes', [...changes]);
 
     [...changes].forEach(upgrade);
   }
 
+  // this mess basically calls resolve() with any <style> nodes that changed/removed/added
   const mo = new MutationObserver((records) => {
     const changes = new Set();
     const iterate = (nodes) => {
@@ -196,13 +200,14 @@
       while (i) {
         const node = nodes[--i];
         if (!(node instanceof HTMLElement)) {
-          continue;
+          continue;  // text node
         }
         if (node instanceof HTMLStyleElement) {
-          changes.add(node);
+          changes.add(node);  // directly a <style>
           continue;
         }
-        const cand = node.querySelectorAll('style');
+        // look for changed children
+        const cand = node.getElementsByTagName('style');
         let j = cand.length;
         while (j) {
           changes.add(cand[--j]);
@@ -224,6 +229,6 @@
 
   const options = {childList: true, subtree: true, attributes: true, attributeFilter: ['scoped']};
   mo.observe(document.body, options);
-  resolve(document.querySelectorAll('style[scoped]'));
+  resolve(document.getElementsByTagName('style'));
 
 }());
