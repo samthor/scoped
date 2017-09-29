@@ -8,9 +8,16 @@
       @import './file.css';
 /*      @import './does-not-exist.css';
 */
+
       h1 {
         color: red;
       }
+      @media (min-width: 300px) {
+        h1 {
+          color: green;
+        }
+      }
+
       a {
         color: pink;
       }
@@ -34,15 +41,30 @@
   </footer>
 </header>
 
-<button id="button">Move CSS</button>
+<button id="move">Move CSS</button>
+<button id="show">Show Rules</button>
+
+<pre id="out"></pre>
 
 <script>
-  button.addEventListener('click', (ev) => {
+  move.addEventListener('click', (ev) => {
     let target = main;
     if (scoped.parentNode === main) {
       target = footer;
     }
     target.appendChild(scoped);
+    out.textContent = '';
+  });
+  show.addEventListener('click', (ev) => {
+    out.textContent = '';
+    let content = [];
+
+    const rules = scoped.sheet.cssRules;
+    for (let i = 0; i < rules.length; ++i) {
+      content.push(rules[i].cssText);
+    }
+
+    out.textContent = content.join('\n');
   });
 </script>
 

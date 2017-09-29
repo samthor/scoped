@@ -47,8 +47,17 @@
 
 
   function upgradeRule(rule, prefix, sheet, index) {
+    if (rule instanceof CSSMediaRule) {
+      // upgrade children
+      const l = rule.cssRules.length;
+      for (let j = 0; j < l; ++j) {
+        upgradeRule(rule.cssRules[j], prefix, rule, j);
+      }
+      return;
+    }
+
     if (!(rule instanceof CSSStyleRule)) {
-      console.warn('unhandled rule', rule);
+      console.warn(`can't scope rule'`, rule);
       return;
     }
 
@@ -124,6 +133,7 @@
       function check() {
         let again = false;
         rAF = 0;
+        console.debug('check running', pendingImportRule.size, pendingInvalidSheet.size);
 
         pendingImportRule.forEach((prefix, importRule) => {
           if (importRule.styleSheet) {
@@ -136,10 +146,12 @@
         });
 
         pendingInvalidSheet.forEach((prefix, sheet) => {
-          if (!sheetRulesError(sheet)) {
-            internalUpgrade(sheet, prefix);
-            pendingInvalidSheet.delete(sheet);
+          if (sheetRulesError(sheet)) {
+            again = true;
+            return;
           }
+          internalUpgrade(sheet, prefix);
+          pendingInvalidSheet.delete(sheet);
         });
 
         // check again next frame
