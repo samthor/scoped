@@ -73,7 +73,8 @@
     }
 
     /**
-     * Callback inside rAF to monitor for sheet loading.
+     * Callback inside rAF to monitor for @import-style loading. This is ugly, but only happens on
+     * styles that are moved or inserted dynamically (static styles all fire at once).
      */
     function process() {
       pendingImportRule.forEach((prefix, importRule) => {
