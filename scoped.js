@@ -58,10 +58,26 @@
       return;
     }
 
-    // Firefox and others
+    // Firefox and others which don't allow modification of selectorText
     const text = rule.cssText;
     sheet.deleteRule(index);
     sheet.insertRule(prefix + text, index);
+  }
+
+
+  /**
+   * @param {!CSSRule} rule
+   * @return {Node} owner of rule
+   */
+  function ownerNode(rule) {
+    let sheet = rule.parentStyleSheet;
+    while (sheet) {
+      if (sheet.ownerNode) {
+        return sheet.ownerNode;
+      }
+      sheet = sheet.parentStyleSheet;
+    }
+    return null;
   }
 
 
@@ -71,47 +87,60 @@
    */
   const upgradeSheet = (function() {
 
-    /**
-     * @type {!WeakMap<!StyleSheet, string>}
-     */
+    /** @type {!WeakMap<!StyleSheet, string>} */
     const upgradedSheets = new WeakMap();
 
-   /**
-    * @type {!Map<!CSSImportRule, string>}
-    */
+   /** @type {!Map<!CSSImportRule, string>} */
     const pendingImportRule = new Map();
 
-    /**
-     * @param {!CSSRule} rule
-     * @return {Node} owner of rule
-     */
-    function ownerNode(rule) {
-      let sheet = rule.parentStyleSheet;
-      while (sheet) {
-        if (sheet.ownerNode) {
-          return sheet.ownerNode;
-        }
-        sheet = sheet.parentStyleSheet;
-      }
-      return null;
-    }
+    /** @type {!Map<!CSSStyleSheet, string>} */
+    const pendingInvalidSheet = new Map();
 
     /**
      * Callback inside rAF to monitor for @import-style loading. This is ugly, but only happens on
      * styles that are moved or inserted dynamically (static styles all fire at once).
      */
-    function process() {
-      pendingImportRule.forEach((prefix, importRule) => {
-        if (importRule.styleSheet) {
-          internalUpgrade(importRule.styleSheet, prefix);
-        } else if (ownerNode(importRule)) {
-          return;  // still valid, do nothing
+    const requestCheck = (function() {
+      let rAF = 0;
+
+      function check() {
+        let again = false;
+        rAF = 0;
+
+        pendingImportRule.forEach((prefix, importRule) => {
+          if (importRule.styleSheet) {
+            internalUpgrade(importRule.styleSheet, prefix);
+          } else if (ownerNode(importRule)) {
+            again = true;
+            return;  // still valid, do nothing
+          }
+          pendingImportRule.delete(importRule);
+        });
+
+        pendingInvalidSheet.forEach((prefix, sheet) => {
+          try {
+            sheet.cssRules;
+          } catch (e) {
+            if (!(e instanceof DOMException)) {
+              throw e;
+            }
+            again = true;
+            return;
+          }
+          internalUpgrade(sheet, prefix);
+          pendingInvalidSheet.delete(sheet);
+        });
+
+        // check again next frame
+        if (again) {
+          rAF = window.requestAnimationFrame(check);
         }
-        pendingImportRule.delete(importRule);
-      });
-      // check again next frame
-      pendingImportRule.size && window.requestAnimationFrame(process);
-    }
+      }
+
+      return function() {
+        rAF = rAF || window.requestAnimationFrame(check);
+      };
+    }());
 
     /**
      * @param {!CSSStyleSheet} sheet already loaded CSSStyleSheet
@@ -121,20 +150,22 @@
       if (upgradedSheets.get(sheet) === prefix) {
         return;  // already done
       }
-      upgradedSheets.set(sheet, prefix);
 
-      console.info('upgrading', sheet);
       try {
+        // this throws DOMException in Firefox if the CSS isn't parsed yet
+        // see: https://bugzilla.mozilla.org/show_bug.cgi?id=761236
         sheet.cssRules;
       } catch (e) {
-        if (e instanceof DOMException) {
-          // This triggers in Firefox for e.g. cross-domain CSS or badly loaded CSS.
-          console.warn('can\'t access cssRules for sheet', sheet,
-              'ignoring (probably cross-domain prevention)');
-          return false;
+        if (!(e instanceof DOMException)) {
+          throw e;
         }
-        throw e;  // shrug
+        pendingInvalidSheet.set(sheet, prefix);
+        requestCheck();
+        return false;
       }
+
+      upgradedSheets.set(sheet, prefix);
+
       const l = sheet.cssRules.length;
       for (let i = 0; i < l; ++i) {
         const rule = sheet.cssRules[i];
@@ -151,10 +182,8 @@
         }
 
         // otherwise, add to pending queue
-        if (!pendingImportRule.size) {
-          window.requestAnimationFrame(process);
-        }
-        pendingImportRule.set(rule, prefix)
+        pendingImportRule.set(rule, prefix);
+        requestCheck();
       }
     }
 
@@ -225,9 +254,7 @@
   /**
    * @param {!Set<!HTMLStyleElement>|!NodeList}
    */
-  function resolve(changes, opt_dirty) {
-    console.info('got potential changes', [...changes]);
-
+  function resolve(changes) {
     [...changes].forEach(upgrade);
   }
 

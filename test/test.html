@@ -3,11 +3,11 @@
 <body>
 
 <header>
-  <main>
-    <style scoped type="text/css">
+  <main id="main">
+    <style scoped type="text/css" id="scoped">
       @import './file.css';
-      @import './does-not-exist.css';
-
+/*      @import './does-not-exist.css';
+*/
       h1 {
         color: red;
       }
@@ -23,15 +23,28 @@
       And blue
     </p>
   </main>
-  <h1>I should not be red</h1>
-  <p>
-    <a>But not me</a>
-  </p>
-  <p>
-    And not blue
-  </p>
+  <footer id="footer">
+    <h1>I should not be red</h1>
+    <p>
+      <a>But not me</a>
+    </p>
+    <p>
+      And not blue
+    </p>
+  </footer>
 </header>
 
+<button id="button">Move CSS</button>
+
+<script>
+  button.addEventListener('click', (ev) => {
+    let target = main;
+    if (scoped.parentNode === main) {
+      target = footer;
+    }
+    target.appendChild(scoped);
+  });
+</script>
 
 <script src="../scoped.js"></script>
 </body>
