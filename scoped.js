@@ -48,7 +48,7 @@
 
   function upgradeRule(rule, prefix, sheet, index) {
     if (!(rule instanceof CSSStyleRule)) {
-      console.warning('unhandled rule', rule);
+      console.warn('unhandled rule', rule);
       return;
     }
 
@@ -83,7 +83,25 @@
 
   /**
    * @param {!CSSStyleSheet} sheet
-   * @param {string} prefix
+   * @return {boolean} whether it would be an error to access its cssRules property
+   */
+  function sheetRulesError(sheet) {
+    try {
+      sheet.cssRules;
+    } catch (e) {
+      if (e instanceof DOMException) {
+        return true;
+      }
+      throw e;
+    }
+    return false;
+  }
+
+
+  /**
+   * @param {!CSSStyleSheet} sheet already loaded CSSStyleSheet
+   * @param {string} prefix to apply
+   * @return {boolean} if applied immediately
    */
   const upgradeSheet = (function() {
 
@@ -118,22 +136,18 @@
         });
 
         pendingInvalidSheet.forEach((prefix, sheet) => {
-          try {
-            sheet.cssRules;
-          } catch (e) {
-            if (!(e instanceof DOMException)) {
-              throw e;
-            }
-            again = true;
-            return;
+          if (!sheetRulesError(sheet)) {
+            internalUpgrade(sheet, prefix);
+            pendingInvalidSheet.delete(sheet);
           }
-          internalUpgrade(sheet, prefix);
-          pendingInvalidSheet.delete(sheet);
         });
 
         // check again next frame
         if (again) {
           rAF = window.requestAnimationFrame(check);
+        } else {
+          // nb. hack for testing
+          document.body.removeAttribute('__scoped_pending');
         }
       }
 
@@ -142,28 +156,20 @@
       };
     }());
 
-    /**
-     * @param {!CSSStyleSheet} sheet already loaded CSSStyleSheet
-     * @param {string} prefix to apply
-     */
     function internalUpgrade(sheet, prefix) {
       if (upgradedSheets.get(sheet) === prefix) {
         return;  // already done
       }
 
-      try {
+      if (sheetRulesError(sheet)) {
         // this throws DOMException in Firefox if the CSS isn't parsed yet
         // see: https://bugzilla.mozilla.org/show_bug.cgi?id=761236
-        sheet.cssRules;
-      } catch (e) {
-        if (!(e instanceof DOMException)) {
-          throw e;
-        }
         pendingInvalidSheet.set(sheet, prefix);
         requestCheck();
         return false;
       }
 
+      let done = true;
       upgradedSheets.set(sheet, prefix);
 
       const l = sheet.cssRules.length;
@@ -184,7 +190,10 @@
         // otherwise, add to pending queue
         pendingImportRule.set(rule, prefix);
         requestCheck();
+        done = false;
       }
+
+      return true;
     }
 
     return internalUpgrade;
@@ -227,7 +236,6 @@
           effectiveParent.setAttribute(state.attrName, '');
         }
         state.parent = effectiveParent;
-        console.info('style', state.attrName, 'now on', effectiveParent);
       }
 
       return false;  // already upgraded
@@ -238,10 +246,9 @@
     }
 
     // TODO: use hash for deduping
-    const hash = hashCode(node.textContent);
+    // const hash = hashCode(node.textContent);
 
     // newly found style node, setup attr
-
     const attrName = `__scope_${++uniqueId}`
     const prefix = `[${attrName}] `;
     styleNodes.set(node, {attrName, prefix, parent: node.parentNode});
@@ -252,10 +259,10 @@
 
 
   /**
-   * @param {!Set<!HTMLStyleElement>|!NodeList}
+   * @param {!Set<!HTMLStyleElement>|!NodeList} changes
    */
   function resolve(changes) {
-    [...changes].forEach(upgrade);
+    Array.from(changes).forEach(upgrade);
   }
 
   // this mess basically calls resolve() with any <style> nodes that changed/removed/added
