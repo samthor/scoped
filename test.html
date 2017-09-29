@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<header>
+  <main>
+    <style scoped type="text/css">
+      @import './file.css';
+      @import './does-not-exist.css';
+
+      h1 {
+        color: red;
+      }
+      a {
+        color: pink;
+      }
+    </style>
+    <h1>I should be red</h1>
+    <p>
+      <a>What about me?</a>
+    </p>
+    <p>
+      And blue
+    </p>
+  </main>
+  <h1>I should not be red</h1>
+  <p>
+    <a>But not me</a>
+  </p>
+  <p>
+    And not blue
+  </p>
+</header>
+
+
+<script src="scoped.js"></script>
+</body>
+</html>
