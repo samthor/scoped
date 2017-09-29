@@ -141,17 +141,20 @@
 
 
   function upgrade(node) {
-    let state = styleNodes.get(node);
+    const effectiveParent = node.scoped && document.body.contains(node) ? node.parentNode : null;
+
+    const state = styleNodes.get(node);
     if (state) {
-      if (!node.scoped) {
+      if (!effectiveParent) {
+        // disappearing, clear state and ask browser to reset CSS
         styleNodes.delete(node);
-        resetCSS(node);  // force the browser to reparse this CSS
+        resetCSS(node);
       } else if (node.sheet) {
+        // otherwise, upgrade the sheet (succeeds if already done)
         // nb. node.sheet is null if being removed
         upgradeSheet(node.sheet, state.prefix);
       }
 
-      const effectiveParent = node.scoped && document.body.contains(node) ? node.parentNode : null;
       if (state.parent !== effectiveParent) {
         if (state.parent) {
           state.parent.removeAttribute(state.attrName);
@@ -166,20 +169,21 @@
       return false;  // already upgraded
     }
 
-    if (!node.scoped) {
-      return;
+    if (!effectiveParent) {
+      return;  // not scoped CSS, never seen before, ignore
     }
 
     // TODO: use hash for deduping
     const hash = hashCode(node.textContent);
 
+    // newly found style node, setup attr
+
     const attrName = `__scope_${++uniqueId}`
     const prefix = `[${attrName}] `;
+    styleNodes.set(node, {attrName, prefix, parent: node.parentNode});
 
     upgradeSheet(node.sheet, prefix);
-
-    node.parentNode.setAttribute(attrName, '');
-    styleNodes.set(node, {attrName, prefix, parent: node.parentNode});
+    effectiveParent.setAttribute(attrName, '');
   }
 
 
@@ -193,6 +197,7 @@
   }
 
   // this mess basically calls resolve() with any <style> nodes that changed/removed/added
+  // TODO: is it faster to just call getElementsByTagName('style') and compare to previous
   const mo = new MutationObserver((records) => {
     const changes = new Set();
     const iterate = (nodes) => {
