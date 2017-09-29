@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 /**
  * @fileoverview Polyfill for `<style scoped>`.
  */
@@ -10,10 +26,10 @@
 
   // are we in "Firefox mode", where .selectorText can't be changed inline?
   s.textContent = '.style-test { color: red; }';
-  document.body.appendChild(s);
+  document.head.appendChild(s);
   s.sheet.cssRules[0].selectorText = '.change';
   const writeMode = s.sheet.cssRules[0].selectorText === '.change';
-  document.body.removeChild(s);
+  document.head.removeChild(s);
 
 
   Object.defineProperty(HTMLStyleElement.prototype, 'scoped', {
@@ -114,6 +130,7 @@
     return false;
   }
 
+  // TODO: upgradeSheet could return a Promise or then-like
 
   /**
    * @param {!CSSStyleSheet} sheet already loaded CSSStyleSheet
@@ -132,8 +149,9 @@
     const pendingInvalidSheet = new Map();
 
     /**
-     * Callback inside rAF to monitor for @import-style loading. This is ugly, but only happens on
-     * styles that are moved or inserted dynamically (static styles all fire at once).
+     * Callback inside rAF to monitor for @import-style loading or for parsing CSS script tags.
+     * This is ugly, but only happens on styles that are moved or inserted dynamically (static
+     * styles all fire at once).
      */
     const requestCheck = (function() {
       let rAF = 0;
@@ -164,9 +182,6 @@
         // check again next frame
         if (again) {
           rAF = window.requestAnimationFrame(check);
-        } else {
-          // nb. hack for testing
-          document.body.removeAttribute('__scoped_pending');
         }
       }
 
@@ -320,8 +335,16 @@
     resolve(changes);
   });
 
-  const options = {childList: true, subtree: true, attributes: true, attributeFilter: ['scoped']};
-  mo.observe(document.body, options);
-  resolve(document.getElementsByTagName('style'));
+  function setup() {
+    const options = {childList: true, subtree: true};
+    mo.observe(document.body, options);
+    resolve(document.body.getElementsByTagName('style'));
+  }
+
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', setup);
+  } else {
+    setup();
+  }
 
 }());
