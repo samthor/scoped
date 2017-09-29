@@ -8,11 +8,13 @@
     return;  // do nothing
   }
 
+  // are we in "Firefox mode", where .selectorText can't be changed inline?
   s.textContent = '.style-test { color: red; }';
   document.body.appendChild(s);
   s.sheet.cssRules[0].selectorText = '.change';
   const writeMode = s.sheet.cssRules[0].selectorText === '.change';
   document.body.removeChild(s);
+
 
   Object.defineProperty(HTMLStyleElement.prototype, 'scoped', {
     enumerable: true,
@@ -29,11 +31,9 @@
   });
 
   /**
-   * @type {!WeakMap<!HTMLStyleElement, *>}
+   * @type {!Map<!HTMLStyleElement, {attrName: string, prefix: string, parent: !HTMLElement}>}
    */
-  const styleNodes = new WeakMap();
-
-
+  const styleNodes = new Map();
 
 
   function hashCode(s) {
@@ -46,7 +46,15 @@
   }
 
 
-  function upgradeRule(rule, prefix, sheet, index) {
+  /**
+   * Upgrades a specific CSSRule.
+   *
+   * @param {!CSSRule} rule
+   * @param {string} prefix to apply
+   * @param {!CSSGroupingRule|!CSSStyleSheet} group
+   * @param {number} index in group
+   */
+  function upgradeRule(rule, prefix, group, index) {
     if (rule instanceof CSSMediaRule) {
       // upgrade children
       const l = rule.cssRules.length;
@@ -69,8 +77,8 @@
 
     // Firefox and others which don't allow modification of selectorText
     const text = rule.cssText;
-    sheet.deleteRule(index);
-    sheet.insertRule(prefix + text, index);
+    group.deleteRule(index);
+    group.insertRule(prefix + text, index);
   }
 
 
@@ -133,7 +141,6 @@
       function check() {
         let again = false;
         rAF = 0;
-        console.debug('check running', pendingImportRule.size, pendingInvalidSheet.size);
 
         pendingImportRule.forEach((prefix, importRule) => {
           if (importRule.styleSheet) {
