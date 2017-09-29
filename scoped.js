@@ -8,6 +8,12 @@
     return;  // do nothing
   }
 
+  s.textContent = '.style-test { color: red; }';
+  document.body.appendChild(s);
+  s.sheet.cssRules[0].selectorText = '.change';
+  const writeMode = s.sheet.cssRules[0].selectorText === '.change';
+  document.body.removeChild(s);
+
   Object.defineProperty(HTMLStyleElement.prototype, 'scoped', {
     enumerable: true,
     get() {
@@ -39,6 +45,24 @@
     return hash;
   }
 
+
+  function upgradeRule(rule, prefix, sheet, index) {
+    if (!(rule instanceof CSSStyleRule)) {
+      console.warning('unhandled rule', rule);
+      return;
+    }
+
+    // Chrome and others
+    if (writeMode) {
+      rule.selectorText = prefix + rule.selectorText;
+      return;
+    }
+
+    // Firefox and others
+    const text = rule.cssText;
+    sheet.deleteRule(index);
+    sheet.insertRule(prefix + text, index);
+  }
 
 
   /**
@@ -99,28 +123,38 @@
       }
       upgradedSheets.set(sheet, prefix);
 
-      const l = sheet.rules.length;
-      for (let i = 0; i < l; ++i) {
-        const rule = sheet.rules[i];
-
-        if (rule instanceof CSSImportRule) {
-          if (rule.styleSheet) {
-            // TODO: recursion is bad
-            internalUpgrade(rule.styleSheet, prefix);
-            continue;
-          }
-
-          // otherwise, add to pending queue
-          if (!pendingImportRule.size) {
-            window.requestAnimationFrame(process);
-          }
-          pendingImportRule.set(rule, prefix)
-
-        } else if (rule instanceof CSSStyleRule) {
-          rule.selectorText = prefix + rule.selectorText;
-        } else {
-          console.warning('unhandled rule', rule);
+      console.info('upgrading', sheet);
+      try {
+        sheet.cssRules;
+      } catch (e) {
+        if (e instanceof DOMException) {
+          // This triggers in Firefox for e.g. cross-domain CSS or badly loaded CSS.
+          console.warn('can\'t access cssRules for sheet', sheet,
+              'ignoring (probably cross-domain prevention)');
+          return false;
         }
+        throw e;  // shrug
+      }
+      const l = sheet.cssRules.length;
+      for (let i = 0; i < l; ++i) {
+        const rule = sheet.cssRules[i];
+
+        if (!(rule instanceof CSSImportRule)) {
+          upgradeRule(rule, prefix, sheet, i);
+          continue;
+        }
+
+        if (rule.styleSheet) {
+          // TODO: recursion is bad
+          internalUpgrade(rule.styleSheet, prefix);
+          continue;
+        }
+
+        // otherwise, add to pending queue
+        if (!pendingImportRule.size) {
+          window.requestAnimationFrame(process);
+        }
+        pendingImportRule.set(rule, prefix)
       }
     }
 
