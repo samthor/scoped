@@ -83,6 +83,7 @@ Unlike previous polyfills, it:
 
 * The polyfill doesn't operate on all CSS rules: e.g., `@keyframes`, `@font` are ignored
 * CSS rules with a matching hash could be deduped, rather than modified individually
+* This code probably doesn't work with Shadow DOM, but that has a form of scoped CSS already
 
 # Release
 
