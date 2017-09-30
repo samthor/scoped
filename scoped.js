@@ -24,6 +24,8 @@
     return;  // do nothing
   }
 
+  const scopeRe = /^([\w\-]*):scope\b/g;
+
   // are we in "Firefox mode", where .selectorText can't be changed inline?
   s.textContent = '.style-test { color: red; }';
   document.head.appendChild(s);
@@ -62,6 +64,16 @@
   }
 
 
+  function buildPrefix(selectorText, prefix) {
+    let change = false;
+    let out = selectorText.replace(scopeRe, (all, sel) => {
+      change = true;
+      return sel + prefix;
+    });
+    return change ? out : prefix + selectorText;
+  }
+
+
   /**
    * Upgrades a specific CSSRule.
    *
@@ -87,14 +99,16 @@
 
     // Chrome and others
     if (writeMode) {
-      rule.selectorText = prefix + rule.selectorText;
+      rule.selectorText = buildPrefix(rule.selectorText, prefix);
       return;
     }
 
     // Firefox and others which don't allow modification of selectorText
     const text = rule.cssText;
+    const selectorText = text.substr(0, text.indexOf('{') - 1);
+    const rest = text.substr(selectorText.length);
     group.deleteRule(index);
-    group.insertRule(prefix + text, index);
+    group.insertRule(buildPrefix(selectorText, prefix) + rest, index);
   }
 
 
@@ -336,7 +350,8 @@
   });
 
   function setup() {
-    const options = {childList: true, subtree: true};
+    // nb. watch for attributeFilter: ['scoped'] to detect a CSS rule changing at runtime
+    const options = {childList: true, subtree: true, attributes: true, attributeFilter: ['scoped']};
     mo.observe(document.body, options);
     resolve(document.body.getElementsByTagName('style'));
   }
