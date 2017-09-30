@@ -1,6 +1,6 @@
 {
-  "name": "scoped-polyfill",
-  "version": "0.0.1",
+  "name": "style-scoped",
+  "version": "0.1.0",
   "description": "style[scoped] polyfill",
   "main": "index.js",
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",

@@ -17,6 +17,13 @@
 <html>
 <body>
 
+<script>
+  window.scopedCSS = {
+    applyToClass: true,
+    prefix: '__scope_custom_',
+  };
+</script>
+
 <header>
   <main id="main">
     <style scoped type="text/css" id="scoped">
@@ -86,6 +93,6 @@
   });
 </script>
 
-<script src="../scoped.js"></script>
+<script src="../scoped.min.js"></script>
 </body>
 </html>

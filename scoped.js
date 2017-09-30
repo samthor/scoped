@@ -18,12 +18,17 @@
  * @fileoverview Polyfill for `<style scoped>`.
  */
 
+
 (function() {
   const s = document.createElement('style');
   if ('scoped' in s) {
     return;  // do nothing
   }
 
+  const scopedCSSOptions = {
+    'applyToClass': false,
+    'prefix': '__scoped_',
+  };
   const scopeRe = /^([\w\-]*):scope\b/g;
 
   // are we in "Firefox mode", where .selectorText can't be changed inline?
@@ -79,7 +84,7 @@
    *
    * @param {!CSSRule} rule
    * @param {string} prefix to apply
-   * @param {!CSSGroupingRule|!CSSStyleSheet} group
+   * @param {!CSSMediaRule|!CSSStyleSheet} group
    * @param {number} index in group
    */
   function upgradeRule(rule, prefix, group, index) {
@@ -134,7 +139,7 @@
    */
   function sheetRulesError(sheet) {
     try {
-      sheet.cssRules;
+      var x = sheet.cssRules;
     } catch (e) {
       if (e instanceof DOMException) {
         return true;
@@ -258,6 +263,25 @@
   }
 
 
+  function applyToAttr(node, attrName, apply) {
+    // default version is to apply to attributes
+    if (apply) {
+      node.setAttribute(attrName, '');
+    } else {
+      node.removeAttribute(attrName);
+    }
+  }
+
+  function applyToClass(node, attrName, apply) {
+    if (apply) {
+      node.classList.add(attrName);
+    } else {
+      node.classList.remove(attrName);
+    }
+  }
+
+
+  let applyMode = applyToAttr;
   let uniqueId = 0;
 
 
@@ -277,12 +301,8 @@
       }
 
       if (state.parent !== effectiveParent) {
-        if (state.parent) {
-          state.parent.removeAttribute(state.attrName);
-        }
-        if (effectiveParent) {
-          effectiveParent.setAttribute(state.attrName, '');
-        }
+        state.parent && applyMode(state.parent, state.attrName, false);
+        effectiveParent && applyMode(effectiveParent, state.attrName, true);
         state.parent = effectiveParent;
       }
 
@@ -297,12 +317,12 @@
     // const hash = hashCode(node.textContent);
 
     // newly found style node, setup attr
-    const attrName = `__scope_${++uniqueId}`
-    const prefix = `[${attrName}] `;
+    const attrName = `${scopedCSSOptions['prefix']}${++uniqueId}`
+    const prefix = applyMode === applyToAttr ? `[${attrName}] ` : `.${attrName} `;
     styleNodes.set(node, {attrName, prefix, parent: node.parentNode});
 
     upgradeSheet(node.sheet, prefix);
-    effectiveParent.setAttribute(attrName, '');
+    applyMode(effectiveParent, attrName, true);
   }
 
 
@@ -350,6 +370,20 @@
   });
 
   function setup() {
+    // clone any options from global
+    const cand = window['scopedCSS'];
+    if (typeof cand === 'object') {
+      for (var k in scopedCSSOptions) {
+        if (k in cand) {
+          scopedCSSOptions[k] = cand[k];
+        }
+      }
+
+      if (scopedCSSOptions['applyToClass']) {
+        applyMode = applyToClass;
+      }
+    }
+
     // nb. watch for attributeFilter: ['scoped'] to detect a CSS rule changing at runtime
     const options = {childList: true, subtree: true, attributes: true, attributeFilter: ['scoped']};
     mo.observe(document.body, options);
