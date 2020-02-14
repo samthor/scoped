@@ -85,6 +85,7 @@ Unlike previous polyfills, it:
 * The polyfill doesn't operate on all CSS rules: e.g., `@keyframes`, `@font` are ignored
 * CSS rules with a matching hash could be deduped, rather than modified individually
 * This doesn't apply to Shadow DOM, but that has a form of scoped CSS already
+* External CSS via `@import` is loaded dynamically with an XHR, so it may take a little while to arrive ([see background](https://github.com/samthor/scoped/issues/2))
 
 # Release
 
