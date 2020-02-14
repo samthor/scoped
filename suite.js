@@ -35,7 +35,7 @@ suite('scoped', function() {
     Promise.resolve(true).then(() => {
       fn();
       done && done();
-    });
+    }).catch((err) => done(err));
   }
 
   var holder;
@@ -50,34 +50,92 @@ suite('scoped', function() {
     holder = null;
   });
 
-  test('basic', function(done) {
-    var s = scoped('h1 { color: red; }');
+  suite('rewrite', function() {
+    const rewrite = (description, source, expected) => {
+      test(description, function(done) {
+        var s = scoped(source + ' {}');
+        holder.appendChild(s);
 
-    var h1 = element('h1', 'first');
-    holder.appendChild(h1);
+        task(() => {
+          const rules = Array.from(s.sheet.rules);
+          const actual = rules.map((rule) => rule.selectorText).join('\n');
+          assert.equal(actual, expected);
+        }, done);
+      });
+    };
 
-    var computed = window.getComputedStyle(h1);
-    assert.notEqual(computed.color, 'rgb(255, 0, 0)', 'style should be normal before insertion');
+    // TODO: These tests rely on order, as the polyfill uses an incrementing counting for prefixes.
 
-    task(() => {
-      holder.appendChild(s);
-      assert.equal(computed.color, 'rgb(255, 0, 0)', 'changed after insertion');
-    }, done);
+    rewrite('rewrite test', 'h1', '[__scoped_1] h1');
+    rewrite('many selectors', 'h1, h2', '[__scoped_2] h1, [__scoped_2] h2');
+    rewrite(':scope rewrite', '.foo, h1:scope, h2:scope:not(.bar)', '[__scoped_3] .foo, h1[__scoped_3], h2[__scoped_3]:not(.bar)');
+    rewrite('unsupported inner :scope', '.foo:-webkit-any(h1:scope, h4, h3:scope):not([foo])', ':not(*)');
+    rewrite('tricky without :scope', '.foo:-webkit-any(h1, h4, h3):not([foo])', '[__scoped_5] .foo:-webkit-any(h1,h4,h3):not([foo])');
+    rewrite('duplicate :scope rewrite', 'h2:scope:scope', 'h2[__scoped_6][__scoped_6]');
   });
 
-  test('doesn\'t effect others', function(done) {
-    var branch = element('div');
-    holder.appendChild(branch);
+  suite('apply', function() {
 
-    branch.appendChild(element('h1', 'branch'));
-    branch.appendChild(scoped('h1 { color: blue; }'));
+    test(':scope', function(done) {
+      var s = scoped(':scope { background: red; }');
+      holder.appendChild(s);
 
-    task(() => {
-      var normal = element('h1', 'normal');
-      holder.appendChild(normal);
-      var computed = window.getComputedStyle(normal);
-      assert.equal(computed.color, 'rgb(0, 0, 0)', 'remains changed');
-    }, done);
+      task(() => {
+        var computed = window.getComputedStyle(holder);
+        assert.equal(computed.backgroundColor, 'rgb(255, 0, 0)', 'scope is changed');
+
+        computed = window.getComputedStyle(document.documentElement);
+        assert.notEqual(computed.backgroundColor, 'rgb(255, 0, 0)', ':root remains unchanged');
+      }, done);
+    });
+
+    test('invalid :scope', function(done) {
+      var s = scoped('div :scope { background: red; }');
+      holder.appendChild(s);
+
+      task(() => {
+        var computed = window.getComputedStyle(document.documentElement);
+        assert.notEqual(computed.backgroundColor, 'rgb(255, 0, 0)', ':root remains unchanged');
+      }, done);
+    });
+
+    test('microtask run', function(done) {
+      var s = scoped('h1 { color: red; }');
+
+      var h1 = element('h1', 'first');
+      holder.appendChild(h1);
+
+      var computed = window.getComputedStyle(h1);
+      assert.notEqual(computed.color, 'rgb(255, 0, 0)', 'style should be normal before insertion');
+
+      task(() => {
+        holder.appendChild(s);
+        assert.equal(computed.color, 'rgb(255, 0, 0)', 'changed after insertion');
+      }, done);
+    });
+
+    test('doesn\'t effect others', function(done) {
+      var branch = element('div');
+      holder.appendChild(branch);
+
+      var unchanged = element('h1', 'unchanged');
+      holder.appendChild(unchanged);
+
+      var targeted = element('h1', 'targeted');
+      branch.appendChild(targeted);
+
+      // only elements in the scoped branch should change
+      branch.appendChild(scoped('h2, h1 { color: red; }'));
+
+      task(() => {
+        var computed = window.getComputedStyle(unchanged);
+        assert.notEqual(computed.color, 'rgb(255, 0, 0)', 'untargeted element should not be modified');
+
+        var computed = window.getComputedStyle(targeted);
+        assert.equal(computed.color, 'rgb(255, 0, 0)');
+      }, done);
+    });
+
   });
 
 });

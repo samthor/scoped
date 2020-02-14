@@ -29,9 +29,8 @@
     'applyToClass': false,
     'prefix': '__scoped_',
   };
-  const scopeRe = /^([\w\-]*):scope\b/g;
 
-  // are we in "Firefox mode", where .selectorText can't be changed inline?
+  // are we in old IE/Firefox mode, where .selectorText can't be changed inline?
   s.textContent = '.style-test { color: red; }';
   document.head.appendChild(s);
   s.sheet.cssRules[0].selectorText = '.change';
@@ -69,13 +68,113 @@
   }
 
 
-  function buildPrefix(selectorText, prefix) {
-    let change = false;
-    let out = selectorText.replace(scopeRe, (all, sel) => {
-      change = true;
-      return sel + prefix;
-    });
-    return change ? out : prefix + selectorText;
+  // This monstrosity matches any valid `[foo="bar"]` block, with either quote style. Parenthesis
+  // have no special meaning within an attribute selector, and the complex regexp below mostly
+  // exists to allow \" or \' in string parts (e.g. `[foo="b\"ar"]`).
+  const attrRe = /^\[.*?(?:(["'])(?:.|\\\1)*\1.*)*\]/;
+  const walkSelectorRe = /([([,]|:scope\b)/;  // "interesting" setups
+  const scopeRe = /^:scope\b/;
+
+  /**
+   * Consumes a single selector from candidate selector text, which may contain many.
+   *
+   * @param {string} raw selector text
+   * @return {?{selector: string, rest: string}}
+   */
+  function consumeSelector(raw, prefix) {
+    let i = raw.search(walkSelectorRe);
+    if (i === -1) {
+      // found literally nothing interesting, success
+      return {
+        selector: `${prefix} ${raw}`,
+        rest: '',
+      };
+    } else if (raw[i] === ',') {
+      // found comma without anything interesting, yield rest
+      return {
+        selector: `${prefix} ${raw.substr(0, i)}`,
+        rest: raw.substr(i + 1),
+      }
+    }
+
+    let leftmost = true;   // whether we're past a descendant or similar selector
+    let scope = false;     // whether :scope has been found + replaced
+    i = raw.search(/\S/);  // place i after initial whitespace only
+
+    let depth = 0;
+  outer:
+    for (; i < raw.length; ++i) {
+      const char = raw[i];
+      switch (char) {
+        case '[':
+          const match = attrRe.exec(raw.substr(i));
+          i += (match ? match[0].length : 1) - 1;  // we add 1 every loop
+          continue;
+
+        case '(':
+          ++depth;
+          continue;
+
+        case ':':
+          if (!leftmost) {
+            continue;  // doesn't matter if :scope is here, it'll always be ignored
+          } else if (!scopeRe.test(raw.substr(i))) {
+            continue;  // not ':scope', ignore
+          } else if (depth) {
+            return null;
+          }
+
+          // Replace ':scope' with our prefix. This can happen many times; ':scope:scope' is valid.
+          // It will never apply to a descendant selector (e.g., ".foo :scope") as this is ignored
+          // by browsers anyway (invalid).
+          raw = raw.substring(0, i) + prefix + raw.substr(i + 6);
+          i += prefix.length;
+          scope = true;
+          --i;  // we'd skip over next character otherwise
+          continue;  // run loop again
+
+        case ')':
+          if (depth) {
+            --depth;
+          }
+          continue;
+      }
+      if (depth) {
+        continue;
+      }
+
+      switch (char) {
+        case ',':
+          break outer;
+
+        case ' ':
+        case '>':
+        case '~':
+        case '+':
+          if (!leftmost) {
+            continue;
+          }
+          leftmost = false;
+      }
+    }
+
+    const selector = (scope ? '' : `${prefix} `) + raw.substr(0, i);
+    return {selector, rest: raw.substr(i + 1)};
+  }
+
+  function updateSelectorText(selectorText, prefix) {
+    const found = [];
+
+    while (selectorText) {
+      const consumed = consumeSelector(selectorText, prefix);
+      if (consumed === null) {
+        return ':not(*)';
+      }
+      found.push(consumed.selector);
+      selectorText = consumed.rest;
+    }
+
+    return found.join(', ');
   }
 
 
@@ -98,22 +197,20 @@
     }
 
     if (!(rule instanceof CSSStyleRule)) {
-      console.warn(`can't scope rule'`, rule);
-      return;
+      return;  // unknown rule type, ignore
     }
 
-    // Chrome and others
+    const update = updateSelectorText(rule.selectorText, prefix);
+
     if (writeMode) {
-      rule.selectorText = buildPrefix(rule.selectorText, prefix);
-      return;
+      // anything but old IE/Firefox
+      rule.selectorText = update;
+    } else {
+      // old browsers which don't allow modification of selectorText
+      const cssText = rule.style.cssText;  // save before we delete
+      group.deleteRule(index);
+      group.insertRule(`${update} {${cssText}}`, index);
     }
-
-    // Firefox and others which don't allow modification of selectorText
-    const text = rule.cssText;
-    const selectorText = text.substr(0, text.indexOf('{') - 1);
-    const rest = text.substr(selectorText.length);
-    group.deleteRule(index);
-    group.insertRule(buildPrefix(selectorText, prefix) + rest, index);
   }
 
 
@@ -139,7 +236,7 @@
    */
   function sheetRulesError(sheet) {
     try {
-      var x = sheet.cssRules;
+      let _ = sheet.cssRules;
     } catch (e) {
       if (e instanceof DOMException) {
         return true;
@@ -222,7 +319,6 @@
         return false;
       }
 
-      let done = true;
       upgradedSheets.set(sheet, prefix);
 
       const l = sheet.cssRules.length;
@@ -243,7 +339,6 @@
         // otherwise, add to pending queue
         pendingImportRule.set(rule, prefix);
         requestCheck();
-        done = false;
       }
 
       return true;
@@ -318,19 +413,11 @@
 
     // newly found style node, setup attr
     const attrName = `${scopedCSSOptions['prefix']}${++uniqueId}`
-    const prefix = applyMode === applyToAttr ? `[${attrName}] ` : `.${attrName} `;
+    const prefix = applyMode === applyToAttr ? `[${attrName}]` : `.${attrName}`;
     styleNodes.set(node, {attrName, prefix, parent: node.parentNode});
 
     upgradeSheet(node.sheet, prefix);
     applyMode(effectiveParent, attrName, true);
-  }
-
-
-  /**
-   * @param {!Set<!HTMLStyleElement>|!NodeList} changes
-   */
-  function resolve(changes) {
-    Array.from(changes).forEach(upgrade);
   }
 
   // this mess basically calls resolve() with any <style> nodes that changed/removed/added
@@ -366,14 +453,14 @@
       }
     });
 
-    resolve(changes);
+    changes.forEach(upgrade);
   });
 
   function setup() {
     // clone any options from global
     const cand = window['scopedCSS'];
     if (typeof cand === 'object') {
-      for (var k in scopedCSSOptions) {
+      for (let k in scopedCSSOptions) {
         if (k in cand) {
           scopedCSSOptions[k] = cand[k];
         }
@@ -387,7 +474,10 @@
     // nb. watch for attributeFilter: ['scoped'] to detect a CSS rule changing at runtime
     const options = {childList: true, subtree: true, attributes: true, attributeFilter: ['scoped']};
     mo.observe(document.body, options);
-    resolve(document.body.getElementsByTagName('style'));
+    const collection = document.body.getElementsByTagName('style');
+    for (let i = 0; i < collection.length; ++i) {
+      upgrade(collection[i]);
+    }
   }
 
   if (document.readyState === 'loading') {

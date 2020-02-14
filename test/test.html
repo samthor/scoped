@@ -34,11 +34,24 @@
         background: blue;
       }
 
+      .hello,
+       /* long */ .there,.whatever,[foo] {
+        background: purple;
+      }
+
+      .bar>:-webkit-any(.blue, .red, :-webkit-any(.green), [webkit-any="foo"]) {
+        font-size: 100px;
+      }
+
+      #footer:scope p {
+        color: red;
+      }
+
       h1 {
         color: red;
       }
-      @media (min-width: 300px) {
-        h1 {
+      @media (min-width: 768px) {
+        :scope:not(#footer) h1 {
           color: green;
         }
       }
@@ -47,21 +60,21 @@
         color: pink;
       }
     </style>
-    <h1>I should be red</h1>
+    <h1>I should be red (green on >=768px)</h1>
     <p>
       <a>What about me?</a>
     </p>
     <p>
-      And blue
+      And aqua
     </p>
   </main>
   <footer id="footer">
-    <h1>I should not be red</h1>
+    <h1>I should be red</h1>
     <p>
       <a>But not me</a>
     </p>
     <p>
-      And not blue
+      And not aqua, overwritten with <code>:scope</code>
     </p>
   </footer>
 </header>
@@ -93,6 +106,6 @@
   });
 </script>
 
-<script src="../scoped.min.js"></script>
+<script src="../scoped.js"></script>
 </body>
 </html>
