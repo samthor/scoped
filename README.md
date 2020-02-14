@@ -16,7 +16,8 @@ Include the polyfill (via your favourite package manager as `style-scoped`) and 
 <h1>I'm not</h1>
 ```
 
-It's about ~1.3k minified and gzipped.
+This can help you provide CSS encapsulation for your projects.
+The library is about ~1.9k minified and gzipped.
 
 ## Supports
 
@@ -69,8 +70,8 @@ Note that `:scope` is supported by most modern browsers—but without `<style sc
 # Background
 
 Scoped CSS was natively available in older versions of Firefox and Chrome, but was removed around 2014.
-As of 2017, it is **not** supported natively in any browser.
-However, various approaches to the web have arisen that may make scoped CSS relevant again.
+As of 2020, it is **not** supported natively in any browser.
+However, it might be useful for your project.
 
 This polyfill is intended as a more production-ready, modern version [of older work](https://www.google.com/search?q=scoped+css+polyfill).
 Unlike previous polyfills, it:
@@ -83,7 +84,7 @@ Unlike previous polyfills, it:
 
 * The polyfill doesn't operate on all CSS rules: e.g., `@keyframes`, `@font` are ignored
 * CSS rules with a matching hash could be deduped, rather than modified individually
-* This code probably doesn't work with Shadow DOM, but that has a form of scoped CSS already
+* This doesn't apply to Shadow DOM, but that has a form of scoped CSS already
 
 # Release
 
