@@ -31,7 +31,7 @@
   };
 
   // are we in old IE/Firefox mode, where .selectorText can't be changed inline?
-  s.textContent = '.style-test { color: red; }';
+  s.textContent = '.x{color:red;}';
   document.head.appendChild(s);
   s.sheet.cssRules[0].selectorText = '.change';
   const writeMode = s.sheet.cssRules[0].selectorText === '.change';
@@ -231,19 +231,41 @@
 
 
   /**
+   * @param {!CSSRule} rule
+   * @param {string} update to replace with
+   * @return {!CSSRule}
+   */
+  function replaceRule(rule, update) {
+    const parent = rule.parentStyleSheet;
+    let i;
+    for (i = 0; i < parent.rules.length; ++i) {
+      if (parent.rules[i] === rule) {
+        break;
+      }
+    }
+    parent.removeRule(i);
+    parent.insertRule(update, i);
+
+    return parent.rules[i];
+  }
+
+
+  /**
    * @param {!CSSStyleSheet} sheet
-   * @return {boolean} whether it would be an error to access its cssRules property
+   * @return {?DOMException} the DOMException found while accessing this CSS
    */
   function sheetRulesError(sheet) {
+    // FIXME: This monstrosity just convinces Closure that `sheet.cssRules` has side-effects.
+    let _;
     try {
-      let _ = sheet.cssRules;
+      _ = sheet.cssRules;
     } catch (e) {
       if (e instanceof DOMException) {
-        return true;
+        return e;
       }
       throw e;
     }
-    return false;
+    return _ ? null : new DOMException();
   }
 
   // TODO: upgradeSheet could return a Promise or then-like
@@ -306,19 +328,55 @@
       };
     }());
 
+    /**
+     * @param {!CSSStyleSheet} sheet
+     * @param {string} prefix
+     */
     function internalUpgrade(sheet, prefix) {
       if (upgradedSheets.get(sheet) === prefix) {
         return;  // already done
       }
 
-      if (sheetRulesError(sheet)) {
-        // this throws DOMException in Firefox if the CSS isn't parsed yet
-        // see: https://bugzilla.mozilla.org/show_bug.cgi?id=761236
-        pendingInvalidSheet.set(sheet, prefix);
-        requestCheck();
-        return false;
+      const e = sheetRulesError(sheet);
+      if (e) {
+        switch (e.code) {
+          case DOMException.SECURITY_ERR:
+            // Occurs if we try to examine a cross-domain CSS file. Fetch it ourselves and update
+            // the CSS once it is available on a 'local' URL.
+            const x = new XMLHttpRequest();
+            x.responseType = 'blob';
+            x.open('GET', sheet.href);
+
+            const rule = replaceRule(
+                /** @type {!CSSRule} */ (sheet.ownerRule),
+                ':not(*) {}'
+            );
+
+            x.onload = () => {
+              // FIXME: we're never revoking this URL
+              const url = URL.createObjectURL(/** @type {!Blob} */ (x.response));
+              const update = /** @type {!CSSImportRule} */ (replaceRule(rule, `@import '${url}'`));
+              pendingImportRule.set(update, prefix);
+              requestCheck();
+            };
+            // nb. no onerror handling
+
+            x.send();
+            return;
+
+          case DOMException.INVALID_ACCESS_ERR:
+            // This occurs in Firefox if the CSS is yet to be parsed (for dynamic cases), see:
+            //   https://bugzilla.mozilla.org/show_bug.cgi?id=761236
+            pendingInvalidSheet.set(sheet, prefix);
+            requestCheck();
+            return;
+
+          default:
+            throw e;
+        }
       }
 
+      // Hooray, the sheet is ready to go!
       upgradedSheets.set(sheet, prefix);
 
       const l = sheet.cssRules.length;
