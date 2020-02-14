@@ -67,6 +67,9 @@ This rule is applied to the immediate parent of the `<style scoped>` tag, e.g.:
 
 Note that `:scope` is supported by most modern browsers—but without `<style scoped>` support, [it will match the HTML element](https://developer.mozilla.org/en-US/docs/Web/CSS/:scope).
 
+Rules which use `:scope` inside another selector (e.g. `:is(div:scope)`) are explicitly disallowed and will be cleared.
+If this _actually_ something you need, I will eat my hat. 🎩
+
 # Background
 
 Scoped CSS was natively available in older versions of Firefox and Chrome, but was removed around 2014.
@@ -83,9 +86,8 @@ Unlike previous polyfills, it:
 # Notes
 
 * The polyfill doesn't operate on all CSS rules: e.g., `@keyframes`, `@font` are ignored
-* CSS rules with a matching hash could be deduped, rather than modified individually
-* This doesn't apply to Shadow DOM, but that has a form of scoped CSS already
 * External CSS via `@import` is loaded dynamically with an XHR, so it may take a little while to arrive ([see background](https://github.com/samthor/scoped/issues/2))
+* 
 
 # Release
 
