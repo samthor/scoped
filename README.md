@@ -1,5 +1,5 @@
 This is a polyfill for scoped CSS, also known as `<style scoped>`, a feature that is useful for building simple components (but which was removed from the HTML specification around 2016).
-Check out a [small demo](https://samthor.github.io/scoped/test/test.html).
+Check out a [small demo](https://samthor.github.io/scoped/demo/test.html).
 
 # Usage
 
@@ -42,6 +42,8 @@ For example:
 </script>
 <script type="module">
 import './node_modules/style-scoped/scoped.min.js';
+// or maybe
+import 'style-scoped';
 </script>
 ```
 
@@ -62,13 +64,13 @@ This refers to the parent of the `<style scoped>` tag, e.g.:
 
 Note that `:scope` is supported by most modern browsers—but without `<style scoped>` support, [it will match the HTML element](https://developer.mozilla.org/en-US/docs/Web/CSS/:scope) and is the same as `:root`.
 
-⚠️ Rules which use `:scope` inside another selector (e.g. `:is(div:scope)`) are explicitly disallowed and will be cleared.
+⚠️ Rules which use `:scope` inside another selector (e.g. `:is(div:scope)`) are not currently supported and will be cleared.
 If this _actually_ something you need, I will eat my hat. 🎩
 
 # Notes
 
 * The polyfill doesn't operate on all CSS rules: e.g., `@keyframes`, `@font` are ignored
-* If you depend on cross-domain CSS via `@import`, this is loaded dynamically with an XHR: so it may take a little while to arrive ([see background](https://github.com/samthor/scoped/issues/2))
+* If you depend on cross-domain CSS via `@import`, this is loaded dynamically with an XHR: so it may take a little while to arrive ([see](https://github.com/samthor/scoped/issues/2) [background](https://github.com/samthor/scoped/issues/3))
 
 # Release
 
@@ -76,7 +78,7 @@ Compile code with [Closure Compiler](https://closure-compiler.appspot.com/home).
 
 ```
 // ==ClosureCompiler==
-// @compilation_level SIMPLE_OPTIMIZATIONS
+// @compilation_level ADVANCED_OPTIMIZATIONS
 // @output_file_name scoped.min.js
 // ==/ClosureCompiler==
 
