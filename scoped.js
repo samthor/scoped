@@ -254,7 +254,7 @@
 
   /**
    * @param {!CSSStyleSheet} sheet
-   * @return {?DOMException} the DOMException found while accessing this CSS
+   * @return {?{code: number}} the DOMException found while accessing this CSS
    */
   function sheetRulesError(sheet) {
     // FIXME: This monstrosity just convinces Closure that `sheet.cssRules` has side-effects.
@@ -287,7 +287,7 @@
     /** @type {!WeakMap<!StyleSheet, string>} */
     const upgradedSheets = new WeakMap();
 
-   /** @type {!Map<!CSSImportRule, string>} */
+    /** @type {!Map<!CSSImportRule, string>} */
     const pendingImportRule = new Map();
 
     /** @type {!Map<!CSSStyleSheet, string>} */
@@ -358,7 +358,7 @@
             // first. Use a base64 URL that doesn't actually contain anything.
             const rule = replaceRule(
                 /** @type {!CSSRule} */ (sheet.ownerRule),
-                `@import url('data:text/css;base64,')`,
+                `@import url('data:text/css;base64,')`
             );
 
             x.onload = () => {
@@ -450,7 +450,7 @@
 
 
   function upgrade(node) {
-    const effectiveParent = node.scoped && document.body.contains(node) ? node.parentNode : null;
+    const effectiveParent = node['scoped'] && document.body.contains(node) ? node.parentNode : null;
 
     const state = styleNodes.get(node);
     if (state) {

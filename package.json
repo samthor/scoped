@@ -2,7 +2,7 @@
   "name": "style-scoped",
   "version": "0.2.0",
   "description": "style[scoped] polyfill",
-  "main": "index.js",
+  "main": "scoped.min.js",
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "license": "Apache-2",
   "scripts": {
