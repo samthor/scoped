@@ -258,16 +258,21 @@
    */
   function sheetRulesError(sheet) {
     // FIXME: This monstrosity just convinces Closure that `sheet.cssRules` has side-effects.
-    let _;
+    let rules = null;
     try {
-      _ = sheet.cssRules;
+      rules = sheet.cssRules;
     } catch (e) {
       if (e instanceof DOMException) {
         return e;
       }
       throw e;
     }
-    return _ ? null : new DOMException();
+    if (rules) {
+      return null;
+    }
+
+    // Safari no longer throws an error here, just pretend we can't read the data.
+    return {code: DOMException.SECURITY_ERR};
   }
 
   // TODO: upgradeSheet could return a Promise or then-like
