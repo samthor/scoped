@@ -14,6 +14,8 @@
  * the License.
  */
 
+import './scoped.js';
+
 suite('scoped', function() {
 
   function element(name, textContent) {

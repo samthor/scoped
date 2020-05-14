@@ -5,8 +5,10 @@
   "main": "index.js",
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "license": "Apache-2",
+  "scripts": {
+    "test": "headless-test test.js"
+  },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^3.5.3"
+    "headless-test": "^1.0.2"
   }
 }
