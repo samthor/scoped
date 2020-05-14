@@ -65,7 +65,7 @@ This refers to the parent of the `<style scoped>` tag, e.g.:
 Note that `:scope` is supported by most modern browsers—but without `<style scoped>` support, [it will match the HTML element](https://developer.mozilla.org/en-US/docs/Web/CSS/:scope) and is the same as `:root`.
 
 ⚠️ Rules which use `:scope` inside another selector (e.g. `:is(div:scope)`) are not currently supported and will be cleared.
-If this _actually_ something you need, I will eat my hat. 🎩
+If this is _actually something you need_, I will eat my hat. 🎩
 
 # Notes
 
