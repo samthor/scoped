@@ -28,6 +28,8 @@
   <main id="main">
     <style scoped type="text/css" id="scoped">
       @import './file.css';
+      @import "http://127.0.0.1:9000/demo/one.css";
+      @import "http://127.0.0.1:9000/demo/two.css";
       @import './does-not-exist.css';
       @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
 
@@ -78,11 +80,23 @@
     <p>
       And not aqua, overwritten with <code>:scope</code>
     </p>
+    <div class="two">
+      This is a CORS-loaded resource which should be blue
+    </div>
   </footer>
 </header>
 
 <button id="move">Move CSS</button>
 <button id="show">Show Rules</button>
+
+<div style="border: 1px solid black; padding: 12px;">
+  <h3>The following should not be colored (not scoped)</h3>
+  <div class="one">One red</div>
+  <div class="two">Two blue</div>
+  <p>
+    Paragraph should look normal
+  </p>
+</div>
 
 <pre id="out"></pre>
 

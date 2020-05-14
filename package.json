@@ -6,9 +6,9 @@
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "license": "Apache-2",
   "scripts": {
-    "test": "headless-test test.js"
+    "test": "headless-test --cors test.js"
   },
   "devDependencies": {
-    "headless-test": "^1.0.2"
+    "headless-test": "^1.0.3"
   }
 }

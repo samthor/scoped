@@ -231,6 +231,8 @@
 
 
   /**
+   * Replaces a live rule, returning the new `CSSRule` that it was replaced with.
+   *
    * @param {!CSSRule} rule
    * @param {string} update to replace with
    * @return {!CSSRule}
@@ -347,17 +349,21 @@
             x.responseType = 'blob';
             x.open('GET', sheet.href);
 
+            // This must also be replaced with a temporary @import, as @import must all appear
+            // first. Use a base64 URL that doesn't actually contain anything.
             const rule = replaceRule(
                 /** @type {!CSSRule} */ (sheet.ownerRule),
-                ':not(*) {}'
+                `@import url('data:text/css;base64,')`,
             );
 
             x.onload = () => {
-              // FIXME: we're never revoking this URL
               const url = URL.createObjectURL(/** @type {!Blob} */ (x.response));
               const update = /** @type {!CSSImportRule} */ (replaceRule(rule, `@import '${url}'`));
               pendingImportRule.set(update, prefix);
               requestCheck();
+
+              // We can revoke this URL immediately as it's seemingly read synchronously.
+              URL.revokeObjectURL(url);
             };
             // nb. no onerror handling
 

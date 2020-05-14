@@ -138,6 +138,43 @@ suite('scoped', function() {
       }, done);
     });
 
+    test('import', async function() {
+
+      const u = new URL(window.location);
+      if (u.hostname === '127.0.0.1') {
+        u.hostname = 'localhost';
+      } else {
+        u.hostname = '127.0.0.1';
+      }
+
+      holder.append(scoped(`
+@import url("${u.origin}/demo/one.css");
+@import url("${u.origin}/demo/two.css");
+      `));
+      // TODO(samthor): This is gross, but we need to allow the fetch to happen.
+      await new Promise((r) => window.setTimeout(r, 100));
+
+      const elOne = Object.assign(document.createElement('div'), {className: 'one'});
+      const elTwo = Object.assign(document.createElement('div'), {className: 'two'});
+
+      holder.append(elOne, elTwo);
+
+      const computedOne = window.getComputedStyle(elOne);
+      assert.equal(computedOne.color, 'rgb(255, 0, 0)');
+
+      const computedTwo = window.getComputedStyle(elTwo);
+      assert.equal(computedTwo.color, 'rgb(0, 0, 255)');
+
+      try {
+        document.body.append(elOne);
+
+        const computedOne = window.getComputedStyle(elOne);
+        assert.equal(computedOne.color, 'rgb(0, 0, 0)');
+      } finally {
+        elOne.remove();
+      }
+    });
+
   });
 
 });
