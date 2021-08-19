@@ -542,7 +542,7 @@
 
     // nb. watch for attributeFilter: ['scoped'] to detect a CSS rule changing at runtime
     const options = {childList: true, subtree: true, attributes: true, attributeFilter: ['scoped']};
-    mo.observe(document.body, options);
+    mo.observe(document, options);
     const collection = document.body.getElementsByTagName('style');
     for (let i = 0; i < collection.length; ++i) {
       upgrade(collection[i]);
