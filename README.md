@@ -18,6 +18,7 @@ Include the polyfill (via your favourite package manager as `style-scoped`) and 
 
 This can help you provide CSS encapsulation for your projects.
 The library is about ~1.9k minified and gzipped.
+You need to include it on your own domain, as it does odd changes that are seen as security problems if loaded cross-origin.
 
 ## Supports
 
