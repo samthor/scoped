@@ -1,35 +1,16 @@
-/*
- * Copyright 2017 Google Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
+(function (factory) {
+  typeof define === 'function' && define.amd ? define(factory) :
+  factory();
+}((function () { 'use strict';
 
-/**
- * @fileoverview Polyfill for `<style scoped>`.
- */
+  // This monstrosity matches any valid `[foo="bar"]` block, with either quote style. Parenthesis
+  // have no special meaning within an attribute selector, and the complex regexp below mostly
+  // exists to allow \" or \' in string parts (e.g. `[foo="b\"ar"]`).
+  const attrRe = /^\[.*?(?:(["'])(?:.|\\\1)*\1.*)*\]/;
+  const walkSelectorRe = /([([,]|:scope\b)/;  // "interesting" setups
+  const scopeRe = /^:scope\b/;
 
-
-(function() {
   const s = document.createElement('style');
-  if ('scoped' in s) {
-    return;  // do nothing
-  }
-
-  const scopedCSSOptions = {
-    'applyToClass': false,
-    'prefix': '__scoped_',
-  };
-
   // are we in old IE/Firefox mode, where .selectorText can't be changed inline?
   s.textContent = '.x{color:red;}';
   document.head.appendChild(s);
@@ -37,6 +18,10 @@
   const writeMode = s.sheet.cssRules[0].selectorText === '.change';
   document.head.removeChild(s);
 
+  const scopedCSSOptions = {
+    'applyToClass': false,
+    'prefix': '__scoped_',
+  };
 
   Object.defineProperty(HTMLStyleElement.prototype, 'scoped', {
     enumerable: true,
@@ -56,24 +41,6 @@
    * @type {!Map<!HTMLStyleElement, {attrName: string, prefix: string, parent: !HTMLElement}>}
    */
   const styleNodes = new Map();
-
-
-  function hashCode(s) {
-    let hash = 5381;
-    let j = s.length;
-    while (j) {
-      hash = (hash * 33) ^ s.charCodeAt(--j);
-    }
-    return hash;
-  }
-
-
-  // This monstrosity matches any valid `[foo="bar"]` block, with either quote style. Parenthesis
-  // have no special meaning within an attribute selector, and the complex regexp below mostly
-  // exists to allow \" or \' in string parts (e.g. `[foo="b\"ar"]`).
-  const attrRe = /^\[.*?(?:(["'])(?:.|\\\1)*\1.*)*\]/;
-  const walkSelectorRe = /([([,]|:scope\b)/;  // "interesting" setups
-  const scopeRe = /^:scope\b/;
 
   /**
    * Consumes a single selector from candidate selector text, which may contain many.
@@ -481,7 +448,7 @@
     // const hash = hashCode(node.textContent);
 
     // newly found style node, setup attr
-    const attrName = `${scopedCSSOptions['prefix']}${++uniqueId}`
+    const attrName = `${scopedCSSOptions['prefix']}${++uniqueId}`;
     const prefix = applyMode === applyToAttr ? `[${attrName}]` : `.${attrName}`;
     styleNodes.set(node, {attrName, prefix, parent: node.parentNode});
 
@@ -549,10 +516,28 @@
     }
   }
 
+  /*
+   * Copyright 2017 Google Inc. All rights reserved.
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   * use this file except in compliance with the License. You may obtain a copy of
+   * the License at
+   *
+   *     http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   * License for the specific language governing permissions and limitations under
+   * the License.
+   */
+
+  console.log("scoped");
+
   if (document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', setup);
   } else {
     setup();
   }
 
-}());
+})));

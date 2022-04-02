@@ -14,7 +14,7 @@
  * the License.
  */
 
-import './scoped.js';
+import './dist\/scoped.js';
 
 suite('scoped', function() {
 
