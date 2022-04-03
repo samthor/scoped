@@ -19,7 +19,8 @@
     "build:cjs": "rollup -i src/index.js -o lib/index.js -f cjs",
     "build:cjs-polyfill": "rollup -i src/polyfill.js -o lib/polyfill.js -f cjs",
     "build:umd-polyfill": "cross-env NODE_ENV=development rollup -i src/polyfill.js -o dist/scoped.js -c rollup.umd.config.js",
-    "build:umd-polyfill:min": "cross-env NODE_ENV=production rollup -i src/polyfill.js -o dist/scoped.min.js -c rollup.umd.config.js"
+    "build:umd-polyfill:min": "cross-env NODE_ENV=production rollup -i src/polyfill.js -o dist/scoped.min.js -c rollup.umd.config.js",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",

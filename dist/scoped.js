@@ -532,8 +532,6 @@
    * the License.
    */
 
-  console.log("scoped");
-
   if (document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', setup);
   } else {
