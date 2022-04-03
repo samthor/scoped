@@ -20,8 +20,6 @@
 
 import { setup } from './index';
 
-console.log("scoped");
-
 if (document.readyState === 'loading') {
   window.addEventListener('DOMContentLoaded', setup);
 } else {
