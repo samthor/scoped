@@ -14,7 +14,7 @@
  * the License.
  */
 
-import './dist/scoped.js';
+import './dist/polyfill.js';
 
 suite('scoped', function() {
 
