@@ -2,13 +2,24 @@
   "name": "style-scoped",
   "version": "0.2.2",
   "description": "style[scoped] polyfill",
-  "main": "scoped.min.js",
+  "main": "dist/lib.js",
+  "module": "dist/lib.esm.js",
+  "files": [
+    "src",
+    "dist"
+  ],
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "license": "Apache-2",
   "scripts": {
-    "test": "headless-test --cors test.js"
+    "test": "npm run build && headless-test --cors test.js",
+    "closure": "google-closure-compiler --js=src/*.js --checks_only --module_resolution=node --compilation_level=ADVANCED",
+    "build": "rollup -c",
+    "prepare": "npm run build"
   },
   "devDependencies": {
-    "headless-test": "^1.0.3"
+    "google-closure-compiler": "^20220301.0.0",
+    "headless-test": "^1.0.3",
+    "rollup": "^2.70.1",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }

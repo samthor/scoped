@@ -75,13 +75,4 @@ If this is _actually something you need_, I will eat my hat. 🎩
 
 # Release
 
-Compile code with [Closure Compiler](https://closure-compiler.appspot.com/home).
-
-```
-// ==ClosureCompiler==
-// @compilation_level ADVANCED_OPTIMIZATIONS
-// @output_file_name scoped.min.js
-// ==/ClosureCompiler==
-
-// code here
-```
+Compile code with `npm run build`.
