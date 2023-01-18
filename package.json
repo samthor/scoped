@@ -2,6 +2,14 @@
   "name": "style-scoped",
   "version": "0.2.2",
   "description": "🎨 Polyfill for the scoped attribute on <style>",
+  "keywords": [
+    "style",
+    "scoped",
+    "polyfill",
+    "css",
+    "scoped-css"
+  ],
+  "bugs": "https://github.com/samthor/scoped/issues",
   "license": "Apache-2.0",
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "exports": {
