@@ -146,7 +146,7 @@ environment for contributors. You can use it with [GitHub Codespaces] online, or
 
 There are a few scripts you can run:
 
-- `npm pack --dry-run`: Build the project using Vite
+- `npm pack`: Build the project using Vite
 - `npm test`: Run the tests using Vitest
 
 🚀 These tasks are also available as VS Code [Tasks].
