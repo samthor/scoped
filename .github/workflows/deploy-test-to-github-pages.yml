@@ -1,0 +1,22 @@
+name: Deploy test/ to GitHub Pages
+on:
+  push:
+    branches: [main]
+concurrency:
+  group: deploy-test-to-github-pages
+  cancel-in-progress: true
+permissions: write-all
+jobs:
+  deploy-test-to-github-pages:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.actions-deploy-pages.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/configure-pages@v2
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: test
+      - id: actions-deploy-pages
+        uses: actions/deploy-pages@v1

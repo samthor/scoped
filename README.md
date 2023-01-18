@@ -6,6 +6,10 @@
 
 ![](https://i.imgur.com/z56LgrG.png)
 
+<!-- prettier-ignore -->
+**[Overview](https://github.com/samthor/scoped#readme)**
+| [Demo](https://samthor.github.io/scoped/basic.html)
+
 </div>
 
 📜 Use old-but-working proposal until `@scope` gets here \
@@ -51,49 +55,23 @@ This polyfill supports all modern browsers. It requires `WeakMap` and
 After loading the polyfill, you can use the `scoped` attribute on `<style>` to
 restrict the scope of the CSS rules to the parent element of the `<style>` tag.
 
-<!--
-You must use direct <img> tags so that they don't get wrapped in <p> tags with
-margins. The <pre> tags are fine, though. They don't ever get wrapped with <p>.
--->
-<table><tr><td>
-
-<!-- prettier-ignore -->
-```html
-<div>Hello <span>world!</span></div>
-<div>
-  <style>
-    div  { color: red;   }
-    span { color: green; }
-  </style>
-  Bonjour <span>monde!</span>
-</div>
-<div>¡Hola <span>Mundo!</span></div>
-```
-
-</td><td>
-
-<img src="https://source.unsplash.com/random/400x250?1" />
-
-</td></tr><tr><td>
-
-<!-- prettier-ignore -->
 ```html
 <div>Hello <span>world!</span></div>
 <div>
   <style scoped>
-    div  { color: red;   }
-    span { color: green; }
+    div:scope {
+      color: red;
+    }
+    span {
+      color: green;
+    }
   </style>
   Bonjour <span>monde!</span>
 </div>
 <div>¡Hola <span>Mundo!</span></div>
 ```
 
-</td><td>
-
-<img src="https://source.unsplash.com/random/400x250?2" />
-
-</td></tr></table>
+![](https://i.imgur.com/B2uJw5P.png)
 
 You can also use the `:scope` pseudo-class to select the parent element of the
 `<style>` tag. This lets you do things that you can't do with an inline `style`
