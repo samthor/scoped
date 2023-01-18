@@ -1,0 +1,21 @@
+# This GitHub action is triggered by pushes or pull requests to the main branch.
+# It runs tests on an ubuntu-latest environment using npm. The concurrency group
+# is unique to the specific branch pushed or pulled. In-progress jobs will be
+# canceled.
+name: Test the main branch
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+concurrency:
+  group: test-the-main-branch-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-the-main-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - run: npm test --if-present
