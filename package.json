@@ -5,8 +5,7 @@
   "license": "Apache-2.0",
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "exports": {
-    "types": "./dist/index.d.ts",
-    "default": "./dist/index.js"
+    "default": "./dist/scoped.min.js"
   },
   "files": [
     "dist",
