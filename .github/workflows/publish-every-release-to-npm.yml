@@ -1,0 +1,25 @@
+# This GitHub action is triggered when a release is published. It publishes the
+# package to npm using npm. The concurrency group is unique to the specific
+# release. In-progress jobs will be canceled. The environment variable
+# NODE_AUTH_TOKEN is taken from the repository's secrets, which is used to
+# authenticate the npm publish command.
+name: Publish every release to npm
+on:
+  release:
+    types: [published]
+concurrency:
+  group: publish-every-release-to-npm
+  cancel-in-progress: true
+jobs:
+  publish-every-release-to-npm:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/style-scoped
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
