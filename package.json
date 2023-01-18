@@ -1,7 +1,7 @@
 {
   "name": "style-scoped",
   "version": "0.2.2",
-  "description": "style[scoped] polyfill",
+  "description": "🎨 Polyfill for the scoped attribute on <style>",
   "main": "dist/lib.js",
   "module": "dist/lib.esm.js",
   "files": [
