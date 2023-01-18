@@ -1,0 +1,20 @@
+<script src="../dist/scoped.min.js"></script>
+<script type="module">
+  import assert from "https://esm.sh/assert";
+  globalThis.assert = assert;
+</script>
+
+<div>
+  <style>
+    p {
+      color: blue;
+    }
+  </style>
+  <style scoped id="check-scoped">
+    p {
+      color: red;
+    }
+  </style>
+  <p id="should-be-red">Should be red</p>
+</div>
+<p id="should-be-blue">Should be blue</p>
