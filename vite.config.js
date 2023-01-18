@@ -5,7 +5,7 @@ export default {
   build: {
     lib: {
       entry: "src/polyfill.ts",
-      name: "scopedCSS",
+      name: "style_scoped",
       formats: ["umd"],
       fileName: () => "scoped.min.js",
     },
