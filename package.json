@@ -2,19 +2,19 @@
   "name": "style-scoped",
   "version": "0.2.2",
   "description": "🎨 Polyfill for the scoped attribute on <style>",
+  "license": "Apache-2",
+  "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "main": "dist/lib.js",
   "module": "dist/lib.esm.js",
   "files": [
     "src",
     "dist"
   ],
-  "author": "Sam Thorogood <sam.thorogood@gmail.com>",
-  "license": "Apache-2",
   "scripts": {
-    "test": "npm run build && headless-test --cors test.js",
-    "closure": "google-closure-compiler --js=src/*.js --checks_only --module_resolution=node --compilation_level=ADVANCED",
     "build": "rollup -c",
-    "prepare": "npm run build"
+    "closure": "google-closure-compiler --js=src/*.js --checks_only --module_resolution=node --compilation_level=ADVANCED",
+    "prepare": "npm run build",
+    "test": "npm run build && headless-test --cors test.js"
   },
   "devDependencies": {
     "google-closure-compiler": "^20220301.0.0",
