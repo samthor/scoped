@@ -4,10 +4,10 @@ import dts from "vite-plugin-dts";
 export default {
   build: {
     lib: {
-      entry: "src/index.ts",
+      entry: "src/polyfill.ts",
       name: "scopedCSS",
       formats: ["umd"],
-      fileName: "scoped",
+      fileName: () => "scoped.min.js",
     },
   },
   plugins: [dts()],
