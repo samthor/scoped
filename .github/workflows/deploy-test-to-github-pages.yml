@@ -14,9 +14,14 @@ jobs:
       url: ${{ steps.actions-deploy-pages.outputs.page_url }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - run: npm pack --dry-run
+      - run: |
+          echo '<!DOCTYPE html>' > index.html
+          echo '<meta http-equiv="refresh" content="0; url=test/basic.html" />' >> index.html
+          echo '<script>location.replace("test/basic.html")</script>' >> index.html
       - uses: actions/configure-pages@v2
       - uses: actions/upload-pages-artifact@v1
-        with:
-          path: test
       - id: actions-deploy-pages
         uses: actions/deploy-pages@v1

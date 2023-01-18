@@ -8,7 +8,7 @@
 
 <!-- prettier-ignore -->
 **[Overview](https://github.com/samthor/scoped#readme)**
-| [Demo](https://samthor.github.io/scoped/basic.html)
+| [Demo](https://samthor.github.io/scoped/)
 
 </div>
 
