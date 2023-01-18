@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<script type="importmap">
+  {
+    "imports": {
+      "style-scoped": "../dist/scoped.min.js",
+      "node:assert": "https://esm.sh/assert",
+      "lodash-es/": "https://esm.sh/lodash-es/"
+    }
+  }
+</script>
+
+<div id="wrapper"></div>
+
+<script type="module">
+  import "style-scoped";
+  import assert from "node:assert";
+  import zip from "lodash-es/zip";
+
+  const wrapper = document.querySelector("#wrapper");
+
+  // prettier-ignore
+  const selectors = [
+    ["p",                                                   "[__scoped_1] p"],
+    ["h1, h2",                                              "[__scoped_2] h1, [__scoped_2] h2"],
+    [".foo, h1:scope, h2:scope:not(.bar)",                  "[__scoped_3] .foo, h1[__scoped_3], h2[__scoped_3]:not(.bar)"],
+    [".foo:-webkit-any(h1:scope, h4, h3:scope):not([foo])", ":not(*)"],
+    [".foo:-webkit-any(h1, h4, h3):not([foo])",             "[__scoped_5] .foo:-webkit-any(h1, h4, h3):not([foo])"],
+    ["h2:scope:scope",                                      "h2[__scoped_6][__scoped_6]"],
+  ];
+
+  for (const [input, expected] of selectors) {
+    const style = document.createElement("style");
+    style.scoped = true;
+    style.textContent = `${input} { background-color: red; }`;
+    wrapper.append(style);
+    await new Promise((r) => setTimeout(r, 5));
+
+    assert.equal(style.sheet.cssRules[0].selectorText, expected);
+    assert.notEqual(
+      getComputedStyle(document.documentElement).backgroundColor,
+      "rgb(255, 0, 0)"
+    );
+
+    style.remove();
+  }
+</script>
