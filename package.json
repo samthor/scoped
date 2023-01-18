@@ -12,6 +12,12 @@
   "bugs": "https://github.com/samthor/scoped/issues",
   "license": "Apache-2.0",
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
+  "contributors": [
+    "Chess Luo <chess@luo.sh>",
+    "Jacob Hummer <jcbhmr@outlook.com>",
+    "SahAssar (https://github.com/SahAssar)"
+  ],
+  "repository": "github:samthor/scoped",
   "exports": {
     "default": "./dist/scoped.min.js"
   },
