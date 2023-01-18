@@ -1,1 +1,8 @@
-{ "image": "mcr.microsoft.com/devcontainers/javascript-node" }
+{
+  "image": "mcr.microsoft.com/devcontainers/javascript-node",
+  "customizations": {
+    "vscode": {
+      "extensions": ["esbenp.prettier-vscode"]
+    }
+  }
+}
