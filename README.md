@@ -6,10 +6,6 @@
 
 [![](https://thum.io/get/crop/600/https://codesandbox.io/embed/5ocrf8)](https://codesandbox.io/s/5ocrf8)
 
-<!-- prettier-ignore -->
-**[Overview](https://github.com/samthor/scoped#readme)**
-| [Demo](https://codesandbox.io/s/5ocrf8)
-
 </div>
 
 📜 Use old-but-working proposal until `@scope` gets here \
