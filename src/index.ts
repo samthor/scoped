@@ -1,28 +1,28 @@
-import { attrRe, walkSelectorRe, scopeRe } from './regex';
+import { attrRe, walkSelectorRe, scopeRe } from "./regex";
 
-const s = document.createElement('style');
+const s = document.createElement("style");
 // are we in old IE/Firefox mode, where .selectorText can't be changed inline?
-s.textContent = '.x{color:red;}';
+s.textContent = ".x{color:red;}";
 document.head.appendChild(s);
-s.sheet.cssRules[0].selectorText = '.change';
-const writeMode = s.sheet.cssRules[0].selectorText === '.change';
+s.sheet.cssRules[0].selectorText = ".change";
+const writeMode = s.sheet.cssRules[0].selectorText === ".change";
 document.head.removeChild(s);
 
 const scopedCSSOptions = {
-  'applyToClass': false,
-  'prefix': '__scoped_',
+  applyToClass: false,
+  prefix: "__scoped_",
 };
 
-Object.defineProperty(HTMLStyleElement.prototype, 'scoped', {
+Object.defineProperty(HTMLStyleElement.prototype, "scoped", {
   enumerable: true,
   get() {
-    return this.hasAttribute('scoped');
+    return this.hasAttribute("scoped");
   },
   set(v) {
     if (v) {
-      this.setAttribute('scoped', this.getAttribute('scoped') || '');
+      this.setAttribute("scoped", this.getAttribute("scoped") || "");
     } else {
-      this.removeAttribute('scoped');
+      this.removeAttribute("scoped");
     }
   },
 });
@@ -31,7 +31,6 @@ Object.defineProperty(HTMLStyleElement.prototype, 'scoped', {
  * @type {!Map<!HTMLStyleElement, {attrName: string, prefix: string, parent: !HTMLElement}>}
  */
 const styleNodes = new Map();
-
 
 function hashCode(s) {
   let hash = 5381;
@@ -54,39 +53,38 @@ function consumeSelector(raw, prefix) {
     // found literally nothing interesting, success
     return {
       selector: `${prefix} ${raw}`,
-      rest: '',
+      rest: "",
     };
-  } else if (raw[i] === ',') {
+  } else if (raw[i] === ",") {
     // found comma without anything interesting, yield rest
     return {
       selector: `${prefix} ${raw.substr(0, i)}`,
       rest: raw.substr(i + 1),
-    }
+    };
   }
 
-  let leftmost = true;   // whether we're past a descendant or similar selector
-  let scope = false;     // whether :scope has been found + replaced
-  i = raw.search(/\S/);  // place i after initial whitespace only
+  let leftmost = true; // whether we're past a descendant or similar selector
+  let scope = false; // whether :scope has been found + replaced
+  i = raw.search(/\S/); // place i after initial whitespace only
 
   let depth = 0;
-outer:
-  for (; i < raw.length; ++i) {
+  outer: for (; i < raw.length; ++i) {
     const char = raw[i];
     switch (char) {
-      case '[':
+      case "[":
         const match = attrRe.exec(raw.substr(i));
-        i += (match ? match[0].length : 1) - 1;  // we add 1 every loop
+        i += (match ? match[0].length : 1) - 1; // we add 1 every loop
         continue;
 
-      case '(':
+      case "(":
         ++depth;
         continue;
 
-      case ':':
+      case ":":
         if (!leftmost) {
-          continue;  // doesn't matter if :scope is here, it'll always be ignored
+          continue; // doesn't matter if :scope is here, it'll always be ignored
         } else if (!scopeRe.test(raw.substr(i))) {
-          continue;  // not ':scope', ignore
+          continue; // not ':scope', ignore
         } else if (depth) {
           return null;
         }
@@ -97,10 +95,10 @@ outer:
         raw = raw.substring(0, i) + prefix + raw.substr(i + 6);
         i += prefix.length;
         scope = true;
-        --i;  // we'd skip over next character otherwise
-        continue;  // run loop again
+        --i; // we'd skip over next character otherwise
+        continue; // run loop again
 
-      case ')':
+      case ")":
         if (depth) {
           --depth;
         }
@@ -111,13 +109,13 @@ outer:
     }
 
     switch (char) {
-      case ',':
+      case ",":
         break outer;
 
-      case ' ':
-      case '>':
-      case '~':
-      case '+':
+      case " ":
+      case ">":
+      case "~":
+      case "+":
         if (!leftmost) {
           continue;
         }
@@ -125,8 +123,8 @@ outer:
     }
   }
 
-  const selector = (scope ? '' : `${prefix} `) + raw.substr(0, i);
-  return {selector, rest: raw.substr(i + 1)};
+  const selector = (scope ? "" : `${prefix} `) + raw.substr(0, i);
+  return { selector, rest: raw.substr(i + 1) };
 }
 
 function updateSelectorText(selectorText, prefix) {
@@ -135,15 +133,14 @@ function updateSelectorText(selectorText, prefix) {
   while (selectorText) {
     const consumed = consumeSelector(selectorText, prefix);
     if (consumed === null) {
-      return ':not(*)';
+      return ":not(*)";
     }
     found.push(consumed.selector);
     selectorText = consumed.rest;
   }
 
-  return found.join(', ');
+  return found.join(", ");
 }
-
 
 /**
  * Upgrades a specific CSSRule.
@@ -164,7 +161,7 @@ function upgradeRule(rule, prefix, group, index) {
   }
 
   if (!(rule instanceof CSSStyleRule)) {
-    return;  // unknown rule type, ignore
+    return; // unknown rule type, ignore
   }
 
   const update = updateSelectorText(rule.selectorText, prefix);
@@ -174,12 +171,11 @@ function upgradeRule(rule, prefix, group, index) {
     rule.selectorText = update;
   } else {
     // old browsers which don't allow modification of selectorText
-    const cssText = rule.style.cssText;  // save before we delete
+    const cssText = rule.style.cssText; // save before we delete
     group.deleteRule(index);
     group.insertRule(`${update} {${cssText}}`, index);
   }
 }
-
 
 /**
  * @param {!CSSRule} rule
@@ -195,7 +191,6 @@ function ownerNode(rule) {
   }
   return null;
 }
-
 
 /**
  * Replaces a live rule, returning the new `CSSRule` that it was replaced with.
@@ -218,7 +213,6 @@ function replaceRule(rule, update) {
   return parent.rules[i];
 }
 
-
 /**
  * @param {!CSSStyleSheet} sheet
  * @return {?{code: number}} the DOMException found while accessing this CSS
@@ -239,7 +233,7 @@ function sheetRulesError(sheet) {
   }
 
   // Safari no longer throws an error here, just pretend we can't read the data.
-  return {code: DOMException.SECURITY_ERR};
+  return { code: DOMException.SECURITY_ERR };
 }
 
 // TODO: upgradeSheet could return a Promise or then-like
@@ -249,8 +243,7 @@ function sheetRulesError(sheet) {
  * @param {string} prefix to apply
  * @return {boolean} if applied immediately
  */
-const upgradeSheet = (function() {
-
+const upgradeSheet = (function () {
   /** @type {!WeakMap<!StyleSheet, string>} */
   const upgradedSheets = new WeakMap();
 
@@ -265,7 +258,7 @@ const upgradeSheet = (function() {
    * This is ugly, but only happens on styles that are moved or inserted dynamically (static
    * styles all fire at once).
    */
-  const requestCheck = (function() {
+  const requestCheck = (function () {
     let rAF = 0;
 
     function check() {
@@ -277,7 +270,7 @@ const upgradeSheet = (function() {
           internalUpgrade(importRule.styleSheet, prefix);
         } else if (ownerNode(importRule)) {
           again = true;
-          return;  // still valid, do nothing
+          return; // still valid, do nothing
         }
         pendingImportRule.delete(importRule);
       });
@@ -297,10 +290,10 @@ const upgradeSheet = (function() {
       }
     }
 
-    return function() {
+    return function () {
       rAF = rAF || window.requestAnimationFrame(check);
     };
-  }());
+  })();
 
   /**
    * @param {!CSSStyleSheet} sheet
@@ -308,7 +301,7 @@ const upgradeSheet = (function() {
    */
   function internalUpgrade(sheet, prefix) {
     if (upgradedSheets.get(sheet) === prefix) {
-      return;  // already done
+      return; // already done
     }
 
     const e = sheetRulesError(sheet);
@@ -318,19 +311,22 @@ const upgradeSheet = (function() {
           // Occurs if we try to examine a cross-domain CSS file. Fetch it ourselves and update
           // the CSS once it is available on a 'local' URL.
           const x = new XMLHttpRequest();
-          x.responseType = 'blob';
-          x.open('GET', sheet.href);
+          x.responseType = "blob";
+          x.open("GET", sheet.href);
 
           // This must also be replaced with a temporary @import, as @import must all appear
           // first. Use a base64 URL that doesn't actually contain anything.
           const rule = replaceRule(
-              /** @type {!CSSRule} */ (sheet.ownerRule),
-              `@import url('data:text/css;base64,')`
+            /** @type {!CSSRule} */ sheet.ownerRule,
+            `@import url('data:text/css;base64,')`
           );
 
           x.onload = () => {
-            const url = URL.createObjectURL(/** @type {!Blob} */ (x.response));
-            const update = /** @type {!CSSImportRule} */ (replaceRule(rule, `@import '${url}'`));
+            const url = URL.createObjectURL(/** @type {!Blob} */ x.response);
+            const update = /** @type {!CSSImportRule} */ replaceRule(
+              rule,
+              `@import '${url}'`
+            );
             pendingImportRule.set(update, prefix);
             requestCheck();
 
@@ -381,23 +377,21 @@ const upgradeSheet = (function() {
   }
 
   return internalUpgrade;
-}());
-
+})();
 
 /**
  * @param {!HTMLStyleElement} node to reset
  */
 function resetCSS(node) {
   const css = node.textContent;
-  node.textContent = '';
+  node.textContent = "";
   node.textContent = css;
 }
-
 
 function applyToAttr(node, attrName, apply) {
   // default version is to apply to attributes
   if (apply) {
-    node.setAttribute(attrName, '');
+    node.setAttribute(attrName, "");
   } else {
     node.removeAttribute(attrName);
   }
@@ -411,13 +405,12 @@ function applyToClass(node, attrName, apply) {
   }
 }
 
-
 let applyMode = applyToAttr;
 let uniqueId = 0;
 
-
 function upgrade(node) {
-  const effectiveParent = node['scoped'] && document.body.contains(node) ? node.parentNode : null;
+  const effectiveParent =
+    node["scoped"] && document.body.contains(node) ? node.parentNode : null;
 
   const state = styleNodes.get(node);
   if (state) {
@@ -437,20 +430,20 @@ function upgrade(node) {
       state.parent = effectiveParent;
     }
 
-    return false;  // already upgraded
+    return false; // already upgraded
   }
 
   if (!effectiveParent) {
-    return;  // not scoped CSS, never seen before, ignore
+    return; // not scoped CSS, never seen before, ignore
   }
 
   // TODO: use hash for deduping
   // const hash = hashCode(node.textContent);
 
   // newly found style node, setup attr
-  const attrName = `${scopedCSSOptions['prefix']}${++uniqueId}`
+  const attrName = `${scopedCSSOptions["prefix"]}${++uniqueId}`;
   const prefix = applyMode === applyToAttr ? `[${attrName}]` : `.${attrName}`;
-  styleNodes.set(node, {attrName, prefix, parent: node.parentNode});
+  styleNodes.set(node, { attrName, prefix, parent: node.parentNode });
 
   upgradeSheet(node.sheet, prefix);
   applyMode(effectiveParent, attrName, true);
@@ -465,14 +458,14 @@ const mo = new MutationObserver((records) => {
     while (i) {
       const node = nodes[--i];
       if (!(node instanceof HTMLElement)) {
-        continue;  // text node
+        continue; // text node
       }
       if (node instanceof HTMLStyleElement) {
-        changes.add(node);  // directly a <style>
+        changes.add(node); // directly a <style>
         continue;
       }
       // look for changed children
-      const cand = node.getElementsByTagName('style');
+      const cand = node.getElementsByTagName("style");
       let j = cand.length;
       while (j) {
         changes.add(cand[--j]);
@@ -494,23 +487,28 @@ const mo = new MutationObserver((records) => {
 
 export function setup() {
   // clone any options from global
-  const cand = window['scopedCSS'];
-  if (typeof cand === 'object') {
+  const cand = window["scopedCSS"];
+  if (typeof cand === "object") {
     for (let k in scopedCSSOptions) {
       if (k in cand) {
         scopedCSSOptions[k] = cand[k];
       }
     }
 
-    if (scopedCSSOptions['applyToClass']) {
+    if (scopedCSSOptions["applyToClass"]) {
       applyMode = applyToClass;
     }
   }
 
   // nb. watch for attributeFilter: ['scoped'] to detect a CSS rule changing at runtime
-  const options = {childList: true, subtree: true, attributes: true, attributeFilter: ['scoped']};
+  const options = {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["scoped"],
+  };
   mo.observe(document, options);
-  const collection = document.body.getElementsByTagName('style');
+  const collection = document.body.getElementsByTagName("style");
   for (let i = 0; i < collection.length; ++i) {
     upgrade(collection[i]);
   }

@@ -18,10 +18,10 @@
  * @fileoverview Polyfill for `<style scoped>`.
  */
 
-import { setup } from './index';
+import { setup } from "./index";
 
-if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', setup);
+if (document.readyState === "loading") {
+  window.addEventListener("DOMContentLoaded", setup);
 } else {
   setup();
 }
