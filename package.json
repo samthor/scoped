@@ -27,12 +27,13 @@
   ],
   "scripts": {
     "prepack": "vite build && cp dist/scoped.min.js scoped.min.js",
-    "pretest": "vite build",
-    "test": "test/wpt-like.mjs"
+    "pretest": "prettier --ignore-path .gitignore -w .",
+    "test": "vite build && test/wpt-like.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.29.2",
     "playwright": "^1.29.2",
+    "prettier": "^2.8.3",
     "serve": "^14.1.2",
     "typescript": "^4.9.4",
     "vite": "^4.0.4",
