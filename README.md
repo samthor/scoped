@@ -4,11 +4,11 @@
 
 <div align="center">
 
-![](https://i.imgur.com/z56LgrG.png)
+[![](https://thum.io/get/crop/600/https://codesandbox.io/embed/5ocrf8)](https://codesandbox.io/s/5ocrf8)
 
 <!-- prettier-ignore -->
 **[Overview](https://github.com/samthor/scoped#readme)**
-| [Demo](https://samthor.github.io/scoped/)
+| [Demo](https://codesandbox.io/s/5ocrf8)
 
 </div>
 
@@ -27,6 +27,8 @@ own risk.
 
 ![npm](https://img.shields.io/static/v1?style=for-the-badge&message=npm&color=CB3837&logo=npm&logoColor=FFFFFF&label=)
 ![jsDelivr](https://img.shields.io/static/v1?style=for-the-badge&message=jsDelivr&color=E84D3D&logo=jsDelivr&logoColor=FFFFFF&label=)
+
+🪀 Want to try it right now with no setup? [Try it on CodeSandbox]!
 
 The best way to install this package on your website is to use a CDN. We provide
 a global classic _non-module_ build that can be loaded directly from
@@ -140,4 +142,5 @@ There are a few scripts you can run:
 [github codespaces]: https://github.com/features/codespaces
 [vs code]: https://code.visualstudio.com/
 [tasks]: https://code.visualstudio.com/docs/editor/tasks
+[try it on codesandbox]: https://codesandbox.io/s/5ocrf8
 <!-- prettier-ignore-end -->
