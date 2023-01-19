@@ -1,6 +1,6 @@
 {
   "name": "style-scoped",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "description": "🎨 Polyfill for the scoped attribute on <style>",
   "keywords": [
     "style",
