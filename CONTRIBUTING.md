@@ -23,4 +23,10 @@ content you contribute may be provided under the project license.
 
 ## Writing code
 
-TODO: Write a short guide describing the workflow to add/change code
+1. 🔀 Fork the repo
+2. 💻 Open the repo in your editor
+3. 👨‍💻 Add your changes to your workspace
+4. ✨ Run the tests to make sure everything works
+5. 🔖 Commit & push your changes
+6. 🔁 Open a PR to get your changes merged
+7. 🚀 Profit!
