@@ -6,8 +6,20 @@ name: Test the main branch
 on:
   push:
     branches: [main]
+    paths:
+      - src/**
+      - test/**
+      - "*.js"
+      - "*.json"
+      - .github/workflows/test-the-main-branch.yml
   pull_request:
     branches: [main]
+    paths:
+      - src/**
+      - test/**
+      - "*.js"
+      - "*.json"
+      - .github/workflows/test-the-main-branch.yml
 concurrency:
   group: test-the-main-branch-${{ github.ref }}
   cancel-in-progress: true
