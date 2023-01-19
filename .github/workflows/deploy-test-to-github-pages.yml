@@ -1,3 +1,12 @@
+# This GitHub action is triggered by pushes to the main branch. It deploys the
+# "test" folder to GitHub Pages. The concurrency group is unique to the specific
+# branch pushed. In-progress jobs will be canceled. The action requires write
+# permissions on the repository. The environment variable "github-pages" is set
+# to the output page_url of the step "actions-deploy-pages" and it runs on an
+# ubuntu-latest environment. The steps include: checking out the repository,
+# setting up node, installing dependencies, dry-run packaging, creating an
+# index.html file for redirecting to test/basic.html, configuring pages,
+# uploading the artifact, and deploying to GitHub Pages.
 name: Deploy test/ to GitHub Pages
 on:
   push:
