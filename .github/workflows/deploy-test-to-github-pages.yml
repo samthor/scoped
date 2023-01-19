@@ -38,6 +38,7 @@ jobs:
           echo '<script>location.replace("test/basic.html")</script>' >> index.html
       - uses: actions/configure-pages@v2
       - uses: actions/upload-pages-artifact@v1
-        path: .
+        with:
+          path: .
       - id: actions-deploy-pages
         uses: actions/deploy-pages@v1
