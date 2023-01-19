@@ -15,7 +15,7 @@ You can also star the project ⭐, rave about it online 💬, or add a link to u
 
 ⚠️ You must never report security 🔒 related issues, vulnerabilities or bugs
 including sensitive information to the issue tracker, or elsewhere in public.
-Instead sensitive bugs must be sent by email to jcbhmr@outlook.com.
+Instead sensitive bugs must be sent by email to sam.thorogood@gmail.com.
 
 👩‍⚖️ When contributing to this project, you must agree that you have authored 100%
 of the content, that you have the necessary rights to the content and that the
