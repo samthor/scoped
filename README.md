@@ -90,16 +90,6 @@ attribute. For example, you can use `:hover` on the parent element:
 not currently supported and will be cleared. If this is _actually something you
 need_, I will eat my hat. 🎩
 
-### Configuration
-
-If `window.scopedCSS` is defined before the polyfill is loaded, it accepts two
-options:
-
-- `scopedCSS.applyToClass` (default `false`): if true, the polyfill will use a
-  class, not an attribute
-- `scopedCSS.prefix`: a custom prefix for the attribute or class name set on the
-  scope
-
 ## How it works
 
 TODO: Explain how it works
