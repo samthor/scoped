@@ -14,10 +14,10 @@
 ⚠️ Doesn't support super complex queries with `:scope` \
 ⚖️ 4kb minzipped
 
-This polyfill is based on the [`scoped` attribute] as defined by the [WHATWG
-HTML specification] in early 2016. This section of the spec has since been
-removed. It's successor is likely to be the [`@scope` at-rule]. Use at your own
-risk.
+This polyfill is based on the `scoped` attribute as defined by the HTML spec in
+early 2016. This section of the spec has since been removed. You can still [view
+it on archive.org] though! It's successor is likely to be the [`@scope`
+at-rule]. Use at your own risk.
 
 ## Installation
 
@@ -128,8 +128,6 @@ There are a few scripts you can run:
 🚀 These tasks are also available as VS Code [Tasks].
 
 <!-- prettier-ignore-start -->
-[`scoped` attribute]: https://web.archive.org/web/20160406090801/https://html.spec.whatwg.org/#attr-style-scoped
-[whatwg html specification]: https://html.spec.whatwg.org/
 [`@scope` at-rule]: https://drafts.csswg.org/css-cascade-6/#scope-atrule
 [unpkg.com]: https://unpkg.com/
 [#2]: https://github.com/samthor/scoped/issues/2
@@ -139,4 +137,5 @@ There are a few scripts you can run:
 [vs code]: https://code.visualstudio.com/
 [tasks]: https://code.visualstudio.com/docs/editor/tasks
 [try it on codesandbox]: https://codesandbox.io/s/5ocrf8
+[view it on archive.org]: https://web.archive.org/web/20160505103205/https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
 <!-- prettier-ignore-end -->
