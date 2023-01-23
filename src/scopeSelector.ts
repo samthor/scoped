@@ -1,31 +1,24 @@
 /**
+ * @internal
  * This function takes a selector and a condition selector, and returns a new
  * selector that will match the same elements as the original, but scoped to the
  * elements that the condition selector matches.
  *
  * @example
  * ```js
- * const scoped = selectorScopedToCondition(
- *   "div",
- *   "[scoped-id='123']"
- * );
- * console.log(scoped);
+ * console.log(scopeSelector("div", "[scoped-id='123']"));
  * //=> "[scoped-id='123'] div, div[scoped-id='123']"
  * ```
  *
  * @param selectorText This should be a valid CSS selector. It may contain
  * string literals, function-like expressions, etc. Just make sure it's valid
  * CSS. Anything that you got from `.selectorText` should be fine.
- * @param simpleSelectorCondition A CSS condition - a simple selector
- * **suffix**. That means `[attr]`, `:pseudo`, `.class`, and `#id` are fine, but
- * `my-element` is not.
+ * @param condition A CSS condition - a simple selector **suffix**. That means
+ * `[attr]`, `:pseudo`, `.class`, and `#id` are fine, but `my-element` is not.
  * @returns A new selector that will match the same elements as the original,
  * but scoped to the elements that the condition selector matches.
  */
-export default function selectorScopedToCondition(
-  selectorText: string,
-  simpleSelectorCondition: string
-) {
+export default function scopeSelector(selectorText: string, condition: string) {
   // 1. Create placeholder storage for strings and function-like expressions.
   const strs = new Map();
   const fns = new Map();
@@ -100,7 +93,7 @@ export default function selectorScopedToCondition(
   //    placeholders. Since we do this before the function expression
   //    replacement, we don't need to worry about function expressions
   //    containing :scope.
-  selectorText = selectorText.replaceAll(":scope", simpleSelectorCondition);
+  selectorText = selectorText.replaceAll(":scope", condition);
 
   // 4. Replace function-like expressions with placeholders. This removes
   //    internal commas just the the string placeholder step, but it also lets
@@ -129,13 +122,13 @@ export default function selectorScopedToCondition(
   selectorArray = selectorArray.flatMap((selector) => [
     // A. Create one scoped selector by prefixing the condition as a parent
     //     condition. Ex: "div" => "[scoped-id='123'] div"
-    simpleSelectorCondition + " " + selector,
+    condition + " " + selector,
     // B. Create another scoped selector by suffixing the condition as an
     //     additional constraint on the original CSS selector. This is why the
     //     constraint cannot be a type selector. If it were, we wouldn't be able
     //     to just append it. The [attr], .class, and :pseudo selectors are all
     //     fine, though. Ex: "div" => "div[scoped-id='123']"
-    selector + simpleSelectorCondition,
+    selector + condition,
   ]);
 
   // 7. Re-join the selector groups back together with commas.
