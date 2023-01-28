@@ -13,7 +13,7 @@
   "scripts": {
     "test": "npm run build && headless-test --cors test.js",
     "closure": "google-closure-compiler --js=src/*.js --checks_only --module_resolution=node --compilation_level=ADVANCED",
-    "build": "rollup -c",
+    "build": "vite build",
     "prepare": "npm run build"
   },
   "devDependencies": {
