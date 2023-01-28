@@ -20,6 +20,8 @@
     "google-closure-compiler": "^20220301.0.0",
     "headless-test": "^1.0.3",
     "rollup": "^2.70.1",
-    "rollup-plugin-terser": "^7.0.2"
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^4.9.4",
+    "vite": "^4.0.4"
   }
 }
