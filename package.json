@@ -5,8 +5,8 @@
   "main": "dist/lib.js",
   "module": "dist/lib.esm.js",
   "files": [
-    "src",
-    "dist"
+    "dist",
+    "scoped.min.js"
   ],
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "license": "Apache-2",
