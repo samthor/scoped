@@ -13,7 +13,7 @@
   "scripts": {
     "test": "npm run build && headless-test --cors test.js",
     "build": "vite build",
-    "prepare": "npm run build"
+    "prepare": "npm run build && cp dist/scoped.min.js scoped.min.js"
   },
   "devDependencies": {
     "headless-test": "^1.0.3",
