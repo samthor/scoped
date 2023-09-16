@@ -1,6 +1,8 @@
 # `<style scoped>` polyfill
 
-🎨 Polyfill for the `scoped` attribute on `<style>`
+🎨 Polyfill for the legacy `scoped` attribute on `<style>`
+
+⚠️ As of September 2023, [Chrome supports the modern `@scope` selector](https://www.bram.us/2023/08/22/a-quick-introduction-to-css-scope/) with more browsers likely to come&mdash;you should use this instead
 
 <div align="center">
 
